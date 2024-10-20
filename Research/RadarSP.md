@@ -324,6 +324,7 @@ y(0) = \int S(f) H(f) \mathrm{d} f = \int \left| S(f) \right|^2 \mathrm{d} f \\
 
 |y(0)|^2 = \left[ \int \left| S(f) \right|^2 \mathrm{d} f \right]^2
 $$
+
 信号为随机过程进入一个LTI系统
 $$
 n_p = \int P_w(f) \left| H(f) \right|^2 \mathrm{d} f = N_0 \left[ \int \left| S(f) \right|^2 \mathrm{d} f \right]
