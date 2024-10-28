@@ -172,5 +172,64 @@ $$
 *实际中，CAPON的性能受$R_{ss}$是否可逆的影响很大，这是为什么呢？*
 初步的想法是$R_{ss}$的不可逆使得蕴藏在$R_{xx}$中的角度信息有了损失，从而在CAPON优化的过程中不能完全抑制正真$\theta_d$的信号，所以使得CAPON的性能变差了。
 
+### 参数估计视角下的CAPON（MVDR）
+
+如果目标信号的角度已知为$\theta_s$，且空间噪声为高斯白噪声，模型如下
+$$
+\mathbf{x}(t) = \mathbf{a}(\theta_s) s(t) + \mathbf{n}(t)
+$$
+该数据模型为线性模型，再加上噪声为高斯白噪声，所以其MVU估计量为线性的形式
+$$
+\hat{s(t)} = \mathbf{w}^{H} \mathbf{x}(t) = \frac{\mathbf{a}^H(\theta_s) }{\mathbf{a}^H(\theta_s) \mathbf{a}(\theta_s)} \mathbf{x}(t) = \frac{\mathbf{e}^H }{\mathbf{e}^H\mathbf{e}} \mathbf{x}(t)
+$$
+现在假设来了一个已知信号的干扰信号，方向为$\theta_j$，则模型如下
+$$
+\begin{aligned}
+\mathbf{x}(t) &= \mathbf{a}(\theta_s) s(t) + \mathbf{a}(\theta_j) s_j(t) +  \mathbf{n}(t) \\
+&= \mathbf{a}(\theta_s) s(t) + \mathbf{n}_1(t)
+\end{aligned}
+$$
+其中，$s_j(t)$是与噪声独立的WSS随机过程，其方差满足各态历经性，所以可以通过时间平均的方差来估计某一时刻的方差。我们将干扰信号归于噪声中，故此时的模型变为色噪声下的线性模型，色噪声的协方差矩阵为
+$$
+C = E\left[ \mathbf{n}_1(t) \mathbf{n}_1^H(t) \right] = P \mathbf{i} \mathbf{i}^H + \sigma^2 I
+$$
+在色噪声下的线性模型同样拥有闭式的线性MVU表达式
+$$
+\hat{s(t)} = \frac{\mathbf{e}^H C^{-1}}{\mathbf{e}^H C^{-1} \mathbf{e}} \mathbf{x}(t)
+$$
+线性权重则为
+$$
+\mathbf{w}_{\text{opt}} = \frac{C^{-1} \mathbf{e}}{\mathbf{e}^H C^{-1} \mathbf{e}} = c_1 \mathbf{e} - c_2 \mathbf{i}
+$$
+其中
+$$
+C^{-1} = \frac{1}{\sigma^2}\left( I -  \frac{P}{MP + \sigma^2} \mathbf{i} \mathbf{i}^H  \right) \\
+c_1 = \frac{1}{M - \frac{P|\mathbf{e}^H \mathbf{i}|^2}{MP + \sigma^2}} \\
+c_2 = \frac{P \mathbf{i}^H \mathbf{e} }{M(MP + \sigma^2) - P |\mathbf{e}^H \mathbf{i}|^2}
+$$
+将这个权重带入目标信号中，可以得到
+$$
+\mathbf{w}_{\text{opt}}^H\cdot s(t)\mathbf{e} = s(t)
+$$
+目标信号无失真的恢复了，这是源于MVU的无偏限制。
+
+对于干扰信号，可以得到
+$$
+\mathbf{w}_{\text{opt}}^H\cdot s_j(t)\mathbf{i} = (c_1 \mathbf{e}^H \mathbf{i} - M c_2^*) s_j(t)
+$$
+干扰信号在功率上损失了$|c_1 \mathbf{e}^H \mathbf{i} - M c_2^*|^2$倍。
+
+如果干扰信号与目标信号方向重合，即$\mathbf{e} = \mathbf{i}$，则$|c_1 \mathbf{e}^H \mathbf{i} - M c_2^*|^2 = 1$，代表着对干扰信号没有能量的衰减。
+
+![image-20241028154353906](C:\Users\outline\AppData\Roaming\Typora\typora-user-images\image-20241028154353906.png)
+
+如图表示当目标信号位于$90 \degree$时，干扰信号的方向与能量衰减之间的关系。可以看到，当干扰信号与目标信号的干扰重合时，是不会对干扰信号造成任何衰减的。
+
+所以对于CAPON来说，在每一个正在搜索的角度$\theta$，将此时所有的其他$K$个方向的信号都视为干扰，放入噪声项中，最后得到能够抑制所有$K$个信号的权重，若当前搜索的方向没有与$K$个方向重合，那么这$K$个方向的信号都得到了最大的抑制。当搜索的方向与这$K$个方向的信号有一个重合时，那么重合的信号就不会被抑制，从而达到了搜索的目的。
+
+注意，CAPON中包含的MVU估计量是对信号的估计，并不是对角度的估计，所以这里的MVU估计量并不代表着方向的估计是最佳的。
+
+同时，也应该意识到，即使是对信号估计的性能，在多个信源的情况下，当搜索角度与其中一个信源重合时，此时得到对信号的估计并不是MVU估计量，因为当对该角度的信号进行估计时，考虑的噪声协方差矩阵包含了该角度的信号，这是多余的。而对于CBF来说，其对信号的估计是在假设噪声为高斯白噪声时的MVU估计量，所以当信源只有一个时，其对信号估计的性能就是最优的。
+
 ### MUSIC
 
