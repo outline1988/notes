@@ -58,7 +58,7 @@ $$
 
 ### 一般WSS高斯随机过程的渐近FIM
 
-参考论文：Frequency domain Cramer-Rao bound for Gaussian processes
+论文：Frequency domain Cramer-Rao bound for Gaussian processes
 
 当接收数据均值不为零的WSS矢量
 $$
@@ -144,54 +144,6 @@ $$
 
 
 
-**例子**
-
-这里举一个论文中简化版的例子，类似于Kay书中P39中的已知的确知信号中时延参数的检测，只不过还增加了一个衰减常数
-$$
-x(t) = \alpha s(t - \tau) + n(t)
-$$
-其中，$s(t)$为已知的确定实信号，$n(t)$为拥有已知功率谱密度$P_{nn}(f)$的WSS高斯随机过程。要确定的参数有$\boldsymbol\theta = [\alpha , \tau]^T$，确定该模型的FIM。
-
-由于该问题为一般均值的WSS高斯随机过程的FIM计算问题，所以可以直接使用上面的公式
-$$
-\begin{aligned}
-d_1 (f; \boldsymbol\theta) &= \frac{1}{\sqrt{T}} \operatorname{FT}\left\{\frac{\partial }{\partial \alpha } \left[ \alpha s(t - \tau) \right] \right\} \\
-&= \frac{1}{\sqrt{T}} S(f) \exp(-\mathrm{j} 2 \pi f \tau) 
-\end{aligned}
-$$
-
-$$
-\begin{aligned}
-d_2 (f; \boldsymbol\theta) &= \frac{1}{\sqrt{T}} \operatorname{FT}\left\{\frac{\partial }{\partial \tau } \left[ \alpha s(t - \tau) \right] \right\} \\
-&= \frac{1}{\sqrt{T}} \operatorname{FT}\left\{-\alpha \frac{\partial s(t') }{\partial t'}
-\bigg|_{t' = t - \tau} \right\} \\
-&= -\frac{1}{\sqrt{T}} \mathrm{j} 2 \pi f \alpha S(f) \exp(-\mathrm{j} 2 \pi f \tau)
-\end{aligned}
-$$
-
-故
-$$
-\begin{aligned}
-\left[\mathbf{I}(\boldsymbol\theta) \right]_{11} &= T\int_{- \infty}^{\infty} \frac{{d}_1^*(f;  \boldsymbol{\theta}) {d}_1(f; \boldsymbol{\theta})}{P_{nn}(f; \boldsymbol{\theta})} \mathrm{d} f \\
-&= \int_{-\infty}^{\infty} \frac{ |S(f)|^2}{P_{nn}(f; \boldsymbol\theta)}\mathrm{d} f
-\end{aligned}
-$$
-
-$$
-\begin{aligned}
-\left[\mathbf{I}(\boldsymbol\theta) \right]_{22} &= T\int_{- \infty}^{\infty} \frac{{d}_2^*(f;  \boldsymbol{\theta}) {d}_2(f; \boldsymbol{\theta})}{P_{nn}(f; \boldsymbol{\theta})} \mathrm{d} f \\
-&= (2 \pi \alpha)^2 \int_{-\infty}^{\infty} \frac{f^2 |S(f)|^2}{P_{nn}(f; \boldsymbol\theta)}\mathrm{d} f
-\end{aligned}
-$$
-
-$$
-\begin{aligned}
-\left[\mathbf{I}(\boldsymbol\theta) \right]_{12} &= T\int_{- \infty}^{\infty} \frac{{d}_1^*(f;  \boldsymbol{\theta}) {d}_2(f; \boldsymbol{\theta})}{P_{nn}(f; \boldsymbol{\theta})} \mathrm{d} f \\
-&= -\mathrm{j}2 \pi \alpha \int_{-\infty}^{\infty} \frac{f |S(f)|^2}{P_{nn}(f; \boldsymbol\theta)}\mathrm{d} f \\
-&= 0
-\end{aligned}
-$$
-
 ### 复数情况的FIM
 
 这里将上述所有公式的复数情况全部重写一遍
@@ -238,11 +190,11 @@ $$
 
 ### 多测量通道下的FIM
 
+论文：On the Cramer-Rao Bound for Time Delay and  Doppler Estimation
+
 如果每一个快拍中，接收到不止一个数据，而是一个向量，比如DOA问题中一个快拍是$M$个数据，TDOA/FDOA问题中一个快拍是来自两个传感器的数据。最后得到的数据是以矩阵的形式呈现，参数蕴藏在多个测量通道中，该如何拓展前面所述的单通道FIM计算问题？
 
 对于定义和一般高斯的情况，由于同一个快拍接收到的数据都是高斯随机变量，所以直接将最后接收到的矩阵以某种方式排列成向量，并算出相应的均值向量和协方差矩阵，按照上述公式进行即可。例子详见DOA估计的笔记。
-
-对于零均值WSS高斯随机过程的渐近FIM，由Whittle近似理论，可以得到一个公式，参考论文：On the Cramer-Rao Bound for Time Delay and  Doppler Estimation
 
 假设有两个WSS高斯实随机序列，且两个随机序列的互相关也平稳
 $$
@@ -265,64 +217,3 @@ $$
 $$
 \left[\mathbf{I}(\boldsymbol{\xi})\right]_{ij} = \frac{T}{2} \int_{- \infty}^{\infty} \operatorname{tr}\left\{ \mathbf{P}^{-1}(f; \boldsymbol\xi) \frac{\partial \mathbf{P}(f; \boldsymbol\xi)}{\xi_i}\mathbf{P}^{-1}(f; \boldsymbol\xi) \frac{\partial \mathbf{P}(f; \boldsymbol\xi)}{\xi_j} \right\} \mathrm{d} f
 $$
-**例子**
-
-同样是时延估计问题，本次不再拥有已知的确定性信号，而是拥有已知的WSS高斯随机信号，通过两个传感器接收到的观测信号来估计TDOA，模型如下
-$$
-\begin{aligned}
-x_1(t) &= s(t) + n_1(t) \\
-x_2(t) &= s(t - \tau) + n_2(t)
-\end{aligned}
-$$
-其中，$s(t)$、$n_1(t)$和$n_2(t)$为互相独立的WSS高斯随机过程，分别有功率谱$P_{ss}(f)$、$ P_{n_1n_1}(f)$和$P_{n_2n_2}(f)$，由此可以写出
-$$
-P_{x_1x_1}(f) = P_{ss}(f) + P_{n_1n_1}(f) \\
-P_{x_2x_2}(f) = P_{ss}(f) + P_{n_2n_2}(f) \\
-$$
-同时
-$$
-\begin{aligned}
-E\left[ x_1(t_1) x_2(t_2) \right] &= E\left[ \left(s(t_1) + n_1(t_1)\right) (s(t_2 - \tau) + n_2(t_2)) \right] \\
-&= E\left[ s(t_1) s(t_2 - \tau) \right] \\
-&= r_{ss}\left((t_1 - t_2) + \tau\right)
-\end{aligned}
-$$
-由此
-$$
-P_{x_1x_2}(f; \tau)  = P_{ss}(f) \exp(\mathrm{j} 2 \pi f \tau)
-$$
-将功率谱写成矩阵形式
-$$
-\mathbf{P}(f; \tau) = \begin{bmatrix}
-P_{ss}(f) + P_{n_1n_1}(f) & P_{ss}(f) \exp(\mathrm{j} 2 \pi f \tau)\\
-P_{ss}(f) \exp(-\mathrm{j} 2 \pi f \tau)& P_{ss}(f) + P_{n_2n_2}(f)
-\end{bmatrix} \\
-$$
-由此FIM可计算为
-$$
-\begin{aligned}
-{I}(\tau) &= \frac{T}{2} \int_{- \infty}^{\infty} \operatorname{tr}\left\{ \mathbf{P}^{-1}(f; \tau) \frac{\partial \mathbf{P}(f; \tau)}{\tau}\mathbf{P}^{-1}(f; \tau) \frac{\partial \mathbf{P}(f; \tau)}{\tau} \right\} \mathrm{d} f \\
-&= \frac{T}{2} \int_{- \infty}^{\infty} \operatorname{tr}\left\{ 
-\begin{bmatrix}
-(2 \pi f)^2 P^2_{ss}(f) & x \\
-x & (2 \pi f)^2P^2_{ss}(f) \\
-\end{bmatrix} \frac{1}{\det \left[\mathbf{P}(f; \tau) \right]}
-\right\} \mathrm{d} f
-\end{aligned}
-$$
-其中，$x$代表无关紧要的数值
-$$
-\det \left[\mathbf{P}(f; \tau) \right] = \left( P_{ss}(f) + P_{n_1n_1}(f) \right) \left( P_{ss}(f) + P_{n_1n_1}(f) \right) - P^2_{ss}(f)
-$$
-由此
-$$
-{I}(\tau) = T \int_{-\infty}^{\infty} \frac{(2 \pi f)^2 \frac{P_{ss}(f)}{P_{n_1n_1(f)}}\frac{P_{ss}(f)}{P_{n_2n_2(f)}}}{1 + \frac{P_{ss}(f)}{P_{n_1n_1(f)}} + \frac{P_{ss}(f)}{P_{n_2n_2(f)}}} \mathrm{d} f
-$$
-
-
-
-
-
-
-
-
