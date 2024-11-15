@@ -77,6 +77,8 @@ $$
 {I}(\tau) = T \int_{-\infty}^{\infty} \frac{(2 \pi f)^2 \frac{P_{ss}(f)}{P_{n_1n_1(f)}}\frac{P_{ss}(f)}{P_{n_2n_2(f)}}}{1 + \frac{P_{ss}(f)}{P_{n_1n_1(f)}} + \frac{P_{ss}(f)}{P_{n_2n_2(f)}}} \mathrm{d} f
 $$
 
+从某种程度上，时延$\tau$的Fisher信息与信号的功率谱中的带宽高度一致。
+
 **论文中同样还提到了多信号源双接收通道以及信号功率谱未知的情况，但没细看。**
 
 
@@ -152,6 +154,8 @@ I(f_d) &= {T} \int_{-\infty}^{\infty} \frac{\partial \ln P_{xx}(f; f_d)}{\partia
 &\approx {T} \int_{-\infty}^{\infty}  \left[\frac{P_{ss}(f) / P_{nn}(f)}{1 + P_{ss}(f)/P_{nn}(f) } \frac{\partial \ln P_{ss}(f) }{\partial f}\right]^2\mathrm{d} f \\
 \end{aligned}
 $$
+从某种程度上，$f_d$的Fisher信息主要取决于信号功率谱密度的尖锐度。
+
 论文中假设的信号模型为
 $$
 x(t) = s(\beta t)  + n(t)
