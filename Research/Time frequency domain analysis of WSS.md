@@ -586,10 +586,10 @@ $$
 $$
 \begin{aligned}
 J' &= \left| \int_{-\infty}^{\infty} \tilde{X}_1(f)\tilde{X}_2^*(f + f_d) \exp(-\mathrm{j} 2 \pi f \tau_0) \mathrm{d} f \right| \\
-&= \left| \int_{0}^T\tilde{x}_1(t - \tau_0)   \tilde{x}^*_2(t) \exp\left(\mathrm{j} 2\pi f_d t\right) \mathrm{d} t  \right|\\
+&= \left| \int_{0}^T\tilde{x}_1(t)   \tilde{x}^*_2(t + \tau_0) \exp\left(\mathrm{j} 2\pi f_d t\right) \mathrm{d} t  \right|\\
 \end{aligned}
 $$
-等价于信号$\tilde{x}_1(t - \tau_0)$与信号$\tilde{x}_2(t) \exp\left(-\mathrm{j} 2\pi f_d t\right)$做互相关，也即模糊函数的框架。由此得到参数$f_d$和参数$\tau_0$的最大似然估计。
+等价于信号$\tilde{x}_1(t)$与信号$\tilde{x}_2(t + \tau_0) \exp\left(-\mathrm{j} 2\pi f_d t\right)$做互相关，也即模糊函数的框架。由此得到参数$f_d$和参数$\tau_0$的最大似然估计。
 
 
 

@@ -21,6 +21,8 @@ E\left[ s(t_1 - \tau) s^*(t_2 - \tau)  \right] &= r_{ss}(t_1 - \tau - (t_2 - \ta
 $$
 与延迟$\tau$无关，所以无法得到关于时延的信息，随机性假设的单通道时延估计无法完成。
 
+从物理意义上来看，一个WSS高斯随机过程只用了两个与时间无关的参数均值和协方差就能描述，故无论什么WSS随机过程，其延迟必然也能视为同一个WSS随机信号的另一种可能的实现，所以不能提取出关于时延的信息。必须有另一个通道的数据作为参照，表明本次WSS随机过程的实现，从而比对出时延信息。
+
 ### TDOA单信号源双接收通道
 
 论文：On the Cramer- Rao bound for time delay and Doppler estimation
@@ -59,7 +61,7 @@ $$
 由此FIM可计算为
 $$
 \begin{aligned}
-{I}(\tau) &= \frac{T}{2} \int_{- \infty}^{\infty} \operatorname{tr}\left\{ \mathbf{P}^{-1}(f; \tau) \frac{\partial \mathbf{P}(f; \tau)}{\tau}\mathbf{P}^{-1}(f; \tau) \frac{\partial \mathbf{P}(f; \tau)}{\tau} \right\} \mathrm{d} f \\
+{I}(\tau) &= \frac{T}{2} \int_{- \infty}^{\infty} \operatorname{tr}\left\{ \mathbf{P}^{-1}(f; \tau) \frac{\partial \mathbf{P}(f; \tau)}{\partial\tau}\mathbf{P}^{-1}(f; \tau) \frac{\partial \mathbf{P}(f; \tau)}{\partial\tau} \right\} \mathrm{d} f \\
 &= \frac{T}{2} \int_{- \infty}^{\infty} \operatorname{tr}\left\{ 
 \begin{bmatrix}
 (2 \pi f)^2 P^2_{ss}(f) & x \\
@@ -77,7 +79,7 @@ $$
 {I}(\tau) = T \int_{-\infty}^{\infty} \frac{(2 \pi f)^2 \frac{P_{ss}(f)}{P_{n_1n_1(f)}}\frac{P_{ss}(f)}{P_{n_2n_2(f)}}}{1 + \frac{P_{ss}(f)}{P_{n_1n_1(f)}} + \frac{P_{ss}(f)}{P_{n_2n_2(f)}}} \mathrm{d} f
 $$
 
-从某种程度上，时延$\tau$的Fisher信息与信号的功率谱中的带宽高度一致。
+从某种程度上，WSS随机信号时延$\tau$估计的Fisher信息取决于随机信号功率谱的有效带宽。比如说最为典型的随机相位单频信号来说，直观上其双通道时延精度是很差的，因为两个单频信号的差别只在于相位差，而这个相位差又由于随机相位被模糊了，从其谱宽也能侧面印证这一点。对于某个功率谱稍宽的随机信号，在时域上可以想象为很多个不同频率的随机相位单频信号的叠加，不同的频率相当于进行了解模糊，而越多的频率就提供了更强大的解模糊能力，所以时延精度高。
 
 **论文中同样还提到了多信号源双接收通道以及信号功率谱未知的情况，但没细看。**
 
@@ -154,7 +156,7 @@ I(f_d) &= {T} \int_{-\infty}^{\infty} \frac{\partial \ln P_{xx}(f; f_d)}{\partia
 &\approx {T} \int_{-\infty}^{\infty}  \left[\frac{P_{ss}(f) / P_{nn}(f)}{1 + P_{ss}(f)/P_{nn}(f) } \frac{\partial \ln P_{ss}(f) }{\partial f}\right]^2\mathrm{d} f \\
 \end{aligned}
 $$
-从某种程度上，$f_d$的Fisher信息主要取决于信号功率谱密度的尖锐度。
+从某种程度上，$f_d$的Fisher信息主要取决于信号功率谱密度的尖锐度，因为此时没有另一个通道作为参考，所以本次随机过程的知识只能从功率谱密度来获得，所以需要依赖于功率谱密度的尖锐程度来确定。对于有另一个接收通道的FDOA估计来说，由于有一个不带多普勒调制信号可以作为本次随机过程实现的参考，所以实际上与功率谱的形状没有关系了，只依赖于信噪比和时长。
 
 论文中假设的信号模型为
 $$
@@ -162,11 +164,57 @@ x(t) = s(\beta t)  + n(t)
 $$
 其中，$\beta = 1 + v / c$。又由于$f_d = 2 v / \lambda$，所以$\beta$和$f_d$呈线性关系，所以FIM也只差一个线性系数。
 
+### FDOA单信号源双接收通道
+
+这里给出一个计算单独FDOA情况下关于$f_d$的计算思路。对于TDOA的单源双通道来说，由于假设$s[n]$为WSS随机过程，所以可以直接带入公式计算。对于FDOA的模型来说，从频域的视角来看，其类似于时延估计的模型
+$$
+\begin{aligned}
+&x_1[n] = s[n] + w_1[n] \\
+&x_2[n] = s[n] \exp(\mathrm{j}2\pi f_d n) + w_2[n] \\
+\end{aligned}
+$$
+转为频域
+$$
+\begin{aligned}
+&X_1[k] = S[k] + W_1[n] \\
+&X_2[k] = S[k - d] + W_2[n]
+\end{aligned}
+$$
+其在频域中表现为某个函数的平移。单独对$S[K]$进行讨论，其满足零均值独立高斯过程，但每个频率的方差不同，导致了其不是WSS平稳过程，不能使用WSS渐近FIM公式。
+
+不过总归来说，从时延的角度来思考这个问题，有更多的思考。比如对于单通道时延估计来说，因为信号是平稳的，所以单通道的延迟不能提供任何时延估计的信息。但是对于单通道频延估计来说，其信号非平稳而独立，能够提供关于时延的信息，所以能够进行估计；再比如，WSS信号的时延估计精度是取决于其功率谱的有效带宽的，也即信号所占频带越大，理论精度就好。
+
 ### TDOA/FDOA单信号源双接收通道
 
 论文：On the Cramer- Rao bound for time delay and Doppler estimation. 
 
 The joint estimation of differential delay, Doppler, and phase. 
+
+联合估计TDOA/FDOA的模型如下（还增加了相位）
+$$
+\begin{aligned}
+&x_1[n] = s[n] + w_1[n] \\
+&x_2[n] = s[n  - n_0] \exp(\mathrm{j}2\pi f_d n) \exp(\mathrm{j} \phi) + w_2[n] \\
+\end{aligned}
+$$
+经过一大堆我不知道怎么做的推导后，可以得到参数$\boldsymbol\xi = [\phi, \tau_0, w_d]^T$的FIM为
+$$
+\mathbf{I}(\boldsymbol\xi) = T\begin{bmatrix}
+\int_{-\infty}^{\infty}\psi(f) \mathrm{d} f & \int_{-\infty}^{\infty}(2\pi f)\psi(f) \mathrm{d} f & 0 \\
+\int_{-\infty}^{\infty}(2\pi f)\psi(f) \mathrm{d} f & \int_{-\infty}^{\infty}(2 \pi f)^2\psi(f) \mathrm{d} f & 0 \\
+0 & 0 & \frac{T^2}{12}\int_{-\infty}^{\infty}\psi(f) \mathrm{d} f
+
+\end{bmatrix}
+$$
+其中
+$$
+\begin{aligned}
+\psi(f)  &= \frac{\left|P_{x_1x_2}(f)\right|^2}{P_{x_1x_1}(f) P_{x_2x_2}(f) - \left|P_{x_1x_2}(f)\right|^2} \\
+&= \frac{P_{ss}^2(f)}{\left[P_{ss}(f) + P_{w_1w_1}(f)\right]\left[P_{ss}(f) + P_{w_2w_2}(f)\right] - P_{ss}^2(f)}
+\end{aligned}
+$$
+从某种程度上可以将其视其为信噪比的功率密度。
+
 
 ## 确定性已知假设
 

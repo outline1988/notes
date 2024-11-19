@@ -211,9 +211,9 @@ P_{x_2 x_1}(f; \boldsymbol\xi) & P_{x_2x_2}(f; \boldsymbol\xi)
 $$
 则可计算FIM（实信号）
 $$
-\left[\mathbf{I}(\boldsymbol{\xi})\right]_{ij} = \frac{N}{2} \int_{- 1 /2}^{1 / 2} \operatorname{tr}\left\{ \mathbf{P}^{-1}(f; \boldsymbol\xi) \frac{\partial \mathbf{P}(f; \boldsymbol\xi)}{\xi_i}\mathbf{P}^{-1}(f; \boldsymbol\xi) \frac{\partial \mathbf{P}(f; \boldsymbol\xi)}{\xi_j} \right\} \mathrm{d} f
+\left[\mathbf{I}(\boldsymbol{\xi})\right]_{ij} = \frac{N}{2} \int_{- 1 /2}^{1 / 2} \operatorname{tr}\left\{ \mathbf{P}^{-1}(f; \boldsymbol\xi) \frac{\partial \mathbf{P}(f; \boldsymbol\xi)}{\partial\xi_i}\mathbf{P}^{-1}(f; \boldsymbol\xi) \frac{\partial \mathbf{P}(f; \boldsymbol\xi)}{\partial\xi_j} \right\} \mathrm{d} f
 $$
 相应的连续情况为（实信号）
 $$
-\left[\mathbf{I}(\boldsymbol{\xi})\right]_{ij} = \frac{T}{2} \int_{- \infty}^{\infty} \operatorname{tr}\left\{ \mathbf{P}^{-1}(f; \boldsymbol\xi) \frac{\partial \mathbf{P}(f; \boldsymbol\xi)}{\xi_i}\mathbf{P}^{-1}(f; \boldsymbol\xi) \frac{\partial \mathbf{P}(f; \boldsymbol\xi)}{\xi_j} \right\} \mathrm{d} f
+\left[\mathbf{I}(\boldsymbol{\xi})\right]_{ij} = \frac{T}{2} \int_{- \infty}^{\infty} \operatorname{tr}\left\{ \mathbf{P}^{-1}(f; \boldsymbol\xi) \frac{\partial \mathbf{P}(f; \boldsymbol\xi)}{\partial\xi_i}\mathbf{P}^{-1}(f; \boldsymbol\xi) \frac{\partial \mathbf{P}(f; \boldsymbol\xi)}{\partial\xi_j} \right\} \mathrm{d} f
 $$
