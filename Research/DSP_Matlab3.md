@@ -102,7 +102,127 @@ $$
 
 如果$N = 512$，如果按照正常的使用FFT去做周期图，则需要将$\lfloor N / 2 \rfloor = 512$的点归为负频率，因为`fftshift`函数就是这样做的，但是`peridogram`函数将$\lfloor N / 2 \rfloor + 1 = 513$个点归为正频率，也即他认为$f = 256 / 512$这个频率属于正频率，也没错，只不过平时使用`fftshift`将这个点归为负频率。
 
-### 频域补零
+### 频域补零（非整数延迟）
 
+DFT的正变换和反变换公式为
+$$
+\begin{aligned}
+X[k] &= \sum\limits_{n = 0}^{N - 1}x[n] \exp\left(-\mathrm{j} 2 \pi \frac{k}{N}n\right) \\
+x[n] &= \sum\limits_{k = 0}^{N - 1}X[k] \exp\left(\mathrm{j} 2 \pi \frac{k}{N} n\right) \\
+\end{aligned}
+$$
+实际上为了显示方便，应该是时域范围的$0 \leq n \leq N - 1$与频域范围的$-N / 2 \leq k \leq N / 2 - 1$对应（假设$N$为偶数）。然而为了计算方便，时域范围的$0 \leq n \leq N - 1$与频域范围的$0 \leq k \leq N - 1$相对应，但是其仍然可以通过傅里叶变换对周期序列的特性还原出方便表示的频域范围，也就是`fftshift`函数。
 
+实际上，可以稍微变换一下IDFT的公式
+$$
+\begin{aligned}
+x[n] &= \sum\limits_{k = 0}^{N - 1}X[k] \exp\left(\mathrm{j} 2 \pi \frac{k}{N} n\right) \\
+&= \sum\limits_{k = 0}^{N - 1}X[k] \exp\left(\mathrm{j} 2 \pi \left(\frac{k}{N'}\right) \left(\frac{N'}{N}n\right)\right)
+\end{aligned}
+$$
+同时，我们在$X[k]$的末尾（低频处）补零至频域的范围为$0 \leq k \leq N' - 1$的序列$X'[k]$，并对其做IDFT
+$$
+\begin{aligned}
+x'[n'] &= \sum\limits_{k = 0}^{N' - 1}X'[k] \exp\left(\mathrm{j} 2 \pi \frac{k}{N'} n'\right) \\
+&= \sum\limits_{k = 0}^{N - 1}X[k] \exp\left(\mathrm{j} 2 \pi \frac{k}{N'} n'\right) \\
+\end{aligned}
+$$
+其中，$0 \leq n' \leq N' - 1$。
+
+对比上面两个式子，可以得到
+$$
+x[n] = x'[\frac{N'}{N}n]
+$$
+其中，$x[n]$是原时域序列，而$x'[n]$是$X[k]$末尾补零的序列，可以视为对$x[n]$进行了某种方式的插值，拓展到了$[0 : N' - 1]$的发范围。所以这个式子的含义就是：**原时域序列可以视为频域补零后的时域插值序列的等间隔抽取**。
+
+那么现在关系的问题是频域末尾补零究竟对应于时域进行怎样的插值。
+
+- 两端补零相当于低频补零，也就是原来信号所有的频率分量都等比例增加，比如原来的DC电平信号变成了一个正弦信号；
+- 末尾补零可以视为两端补零的循环移位，而循环移位的物理含义在于所有频率以同样的频率间隔平移，所以末尾补零首先进行了一个等比例频率增加，再进行一个等间隔平移；
+- 这是一个复杂的变换，可以视为对原序列进行了一个复杂且具有提高频率性质的插值。
+
+这个插值后图形的效果没有很大的作用，但是由于matlab中`ifft`函数极大概率会自动末尾补零，所以是一个常见的错误。
+
+有了这些知识，可以来讨论一下非整数频移的效果。由DFT的循环移位性质可知
+$$
+\begin{aligned}
+x[n - n_0]  &\leftrightarrow  X[k] \exp\left(\mathrm{j} 2 \pi \frac{k}{N} n_0\right) \\
+? &\leftrightarrow X[k] \exp\left(\mathrm{j} 2 \pi \left(\frac{k}{N}\right) \tau_0\right)
+\end{aligned}
+$$
+同样可以理解为，在频域上进行一个多普勒调制，当$n_0$是整数，可以很轻易得到时域就是循环移位的结果，如果是不为整数的$\tau_0$，其对应的时域是怎样的呢？
+$$
+\begin{aligned}
+X[k] \exp\left(\mathrm{j} 2 \pi \frac{k}{N} \tau_0\right)
+&= X[k] \exp\left(\mathrm{j} 2 \pi \left(\frac{k}{N}\right) \left(  \frac{N}{N'}n_0\right)\right)\\
+&= X'[k] \exp\left(\mathrm{j} 2 \pi \frac{k}{N'} n_0\right)\\
+&\leftrightarrow x'[n - n_0]
+\end{aligned}
+$$
+首先，令$\tau_0 = \frac{N}{N'}n_0$，$n_0$为整数，所以可以将将$\tau_0$用整数表达了出来。
+
+其次，我们将$X[k]$进行末尾补零的操作。可以发现，由于$n_0$是整数，末尾补零后再转到时域，相当于时域经过插值后的整数循环移位。
+
+又由于原始序列就是插值序列的等间隔抽取，所以以这样方式在频域进行多普勒调制的效果就是：**时域插值，循环移位，再等间隔抽取**。然而，以这种方式的频域非整数多普勒调制，导致的时域插值十分奇怪，所以是一个常见的错误。
+
+我们正真的目的是在频域进行非整数的多普勒调制，使得时域能够循环移位至正确的插值结果。前面所述的插值方式是低频补零，这是不正确的，我们正真要做的是高频补零
+$$
+\tilde{X}[k] = \begin{cases}
+X[k], \quad 0\leq k \leq \frac{N}{2} - 1\\
+0, \quad \frac{N}{2} \leq k \leq  N' - \frac{N}{2} - 1 \\
+X[k - N' + N], \quad N' - \frac{N}{2} \leq k \leq N' - 1
+\end{cases}
+$$
+其中，$N'$是补零后的总点数。
+
+然后再求高频补零（中间补零）且进行了整数多普勒调制的IDFT
+$$
+\tilde{X}[k] \exp\left(-\mathrm{j} 2 \pi \frac{k}{N'}n_0\right) = \tilde{X}[k] \exp\left(-\mathrm{j} 2 \pi \frac{k}{N}\tau_0\right)\leftrightarrow \tilde{x}[n - n_0]
+$$
+最终在再对$\tilde{x}[n - n_0]$进行等间隔抽样即可，**这是复杂版的流程**。
+
+若时域序列$x[n]$的范围为$[-N/2, N/2-1]$，对应的频域范围为$[-N/2, N/2-1]$，则我们在这样的频域范围内进行非整数多普勒调制
+$$
+\begin{aligned}
+X[k] &= \sum\limits_{n = -N / 2}^{N / 2 - 1}x[n] \exp\left(-\mathrm{j} 2 \pi \frac{k}{N}n\right)  \\
+x[n] &= \sum\limits_{k = -N / 2}^{N / 2 - 1}X[k] \exp\left(\mathrm{j} 2 \pi \frac{k}{N} n\right)
+\end{aligned}
+$$
+则同样在$X[k]$的末尾补零得到$X'[k]$，再转到时域，此时时域频域的范围都是$[-N / 2, N' - N / 2 - 1]$。
+$$
+\begin{aligned}
+x'[n] &= \sum\limits_{k = -N / 2}^{N' - N / 2 - 1}X'[k] \exp\left(\mathrm{j} 2 \pi \frac{k}{N'} n\right) \\
+&= \sum\limits_{k = -N / 2}^{N / 2 - 1}X[k] \exp\left(\mathrm{j} 2 \pi \frac{k}{N} \left( \frac{N}{N'} n \right) \right) \\\end{aligned}
+$$
+也即
+$$
+x[n] = x'[\frac{N}{N'}n]
+$$
+原时域序列仍然是频域补零后的时域插值序列的抽取，然而此时在频域补零对应的是高频补零，所以时域的插值就是原时域同等频率的细化，是正真有用的插值。由此进行了非整数的多普勒频移，仍然对应着插值序列的循环移位，再抽取。
+
+也就是说，要实现同频率的插值的核心在于频域的高频插值，也就是要化成频域范围为$[-N/2, N/2-1]$的时候在进行非整数多普勒频移，然后再返回时域。
+
+为了在matlab上实现高频补零的时域插值，函数`fft`默认都是在范围$[0, N-1]$进行的，所以需要进行一些等价的操作，步骤如下
+
+- 得到一个$[0 : N-1]$的序列；
+- 对于使用`fft`函数，得到$[0 : N-1]$的频域序列；
+- 对频域序列做`fftshift`转移到频域范围$[-N / 2 : N / 2 - 1]$；
+- 在频域范围$[-N / 2 : N / 2 - 1]$处进行非整数的多普勒频移（小数导致了自动进行了高频补零）；
+- 使用`ifftshift`将频域范围转至$[0 : N-1]$；
+- 使用`ifft`函数。
+
+代码如下
+```matlab
+N = length(x_n);
+n = 0 : N - 1;
+k = n;
+
+X_k = fftshift( fft(x_n) );
+
+X_k_tau = X_k .* exp(-1j * 2 * pi * (k' - floor(N / 2)) / N * tau);
+X_k_tau = ifftshift(X_k_tau);
+
+x_n_tau = ifft(X_k_tau);
+x_n_tau_dopler = x_n_tau .* exp(1j * 2 * pi * f_d * n');
+```
 
