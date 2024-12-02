@@ -184,7 +184,7 @@ $$
 
 不过总归来说，从时延的角度来思考这个问题，有更多的思考。比如对于单通道时延估计来说，因为信号是平稳的，所以单通道的延迟不能提供任何时延估计的信息。但是对于单通道频延估计来说，其信号非平稳而独立，能够提供关于时延的信息，所以能够进行估计；再比如，WSS信号的时延估计精度是取决于其功率谱的有效带宽的，也即信号所占频带越大，理论精度就好。
 
-### TDOA/FDOA单信号源双接收通道
+### TDOA/FDOA单信号源双接收通道1
 
 论文：On the Cramer- Rao bound for time delay and Doppler estimation. 
 
@@ -197,9 +197,9 @@ $$
 &x_2[n] = s[n  - n_0] \exp(\mathrm{j}2\pi f_d n) \exp(\mathrm{j} \phi) + w_2[n] \\
 \end{aligned}
 $$
-经过一大堆我不知道怎么做的推导后，可以得到参数$\boldsymbol\xi = [\phi, \tau_0, w_d]^T$的FIM为
+经过一大堆我不知道怎么做的推导后，可以得到参数$\boldsymbol\xi = [\phi, \tau_0, w_d = 2 \pi f_d]^T$的FIM为
 $$
-\mathbf{I}(\boldsymbol\xi) = T\begin{bmatrix}
+\mathbf{I}(\boldsymbol\xi) = 2T\begin{bmatrix}
 \int_{-\infty}^{\infty}\psi(f) \mathrm{d} f & \int_{-\infty}^{\infty}(2\pi f)\psi(f) \mathrm{d} f & 0 \\
 \int_{-\infty}^{\infty}(2\pi f)\psi(f) \mathrm{d} f & \int_{-\infty}^{\infty}(2 \pi f)^2\psi(f) \mathrm{d} f & 0 \\
 0 & 0 & \frac{T^2}{12}\int_{-\infty}^{\infty}\psi(f) \mathrm{d} f
@@ -215,6 +215,241 @@ $$
 $$
 从某种程度上可以将其视其为信噪比的功率密度。
 
+当假设两个通道噪声都是白的，且具有高的信噪比，则可以重新表示为
+$$
+\begin{aligned}
+\psi(f) 
+&= \frac{P_{ss}^2(f)}{\left[P_{ss}(f) + P_{w_1w_1}(f)\right]\left[P_{ss}(f) + P_{w_2w_2}(f)\right] - P_{ss}^2(f)} \\
+&= \frac{P_{ss}^2(f)}{\left[P_{w_1w_1}(f) + P_{w_2w_2}(f)\right]P_{ss}(f) + P_{w_1w_1}(f) P_{w_2w_2}(f)} \\
+&= \frac{P_{ss}(f)}{\left[P_{w_1w_1}(f) + P_{w_2w_2}(f)\right] + {P_{w_1w_1}(f) P_{w_2w_2}(f)}/{P_{ss}(f)}} \\
+&\approx \frac{P_{ss}(f)}{P_{w_1w_1}(f) + P_{w_2w_2}(f)} \\
+&= \frac{P_{ss}(f)}{\sigma^2_1 + \sigma^2_2}
+\end{aligned}
+$$
+
+### TDOA/FDOA单信号源双接收通道2
+
+论文：Joint TDOA and FDOA Estimation: A Conditional Bound and Its Use for Optimally Weighted Localization.
+
+这篇论文虽然讲述的是确定性未知假设下的CRB推导，但是其假设的数据模型可以运用在随机性已知的假设下，数据模型为
+$$
+\begin{aligned}
+x_1[n] &= s[n] + w_1[n] \\
+x_2[n] &= \exp(\mathrm{j} \phi) s_{\tau}[n] \exp(\mathrm{j} v n) + w_1[n] \\
+\end{aligned}
+$$
+其中，$v$为数字多普勒频移，$s_{\tau}[n] = s\left(T_s(n - \tau)\right)$，$\tau$可以为小数。同时，有一个比较特别的假设，$n$的范围为$[-N / 2 : N / 2 - 1]$，相比于一般的范围$[0 : N-1]$，前者对于频域的高频补零拥有更方便简洁的矩阵表达式。同时，在WSS高斯随机过程的假设下，$s[n]$为随机变量。
+
+待估计的参数为
+$$
+\boldsymbol{\xi} = \begin{bmatrix}
+\phi & \tau & v
+\end{bmatrix}^T
+$$
+
+**时域**
+
+首先可以从时域进行分析，将其写为矩阵形式
+$$
+\begin{aligned}
+\mathbf{x}_1 &= \mathbf{s} + \mathbf{w}_1 \\
+\mathbf{x}_2 &= \exp(\mathrm{j} \phi )\mathbf{D}_{v}\mathbf{F}^H \mathbf{D}_{\tau}\mathbf{F}\mathbf{s} + \mathbf{w}_2 \\
+&= \exp(\mathrm{j} \phi )\mathbf{Q}\mathbf{s} + \mathbf{w}_2
+\end{aligned}
+$$
+其中
+$$
+\mathbf{F} = \exp\left(-\mathrm{j} \frac{2 \pi}{N} \mathbf{n}\mathbf{n}^T\right) / \sqrt{N} \\
+\mathbf{D}_{\tau} = \operatorname{diag}\left[\exp(-\mathrm{j} 2 \pi \frac{\mathbf{n}}{N} \tau)\right] \\
+\mathbf{D}_{\tau} = \operatorname{diag}\left[\exp(\mathrm{j} v \mathbf{n} )\right] \\
+\mathbf{n} = \begin{bmatrix}
+-\frac{N}{2} & \cdots & \frac{N}{2} - 1
+\end{bmatrix}^T
+$$
+注意，这里的范围一定是$[-N / 2 : N / 2 - 1]$，有此上式的非整数时延才能等效于低频补零。
+
+由此可以得到时域协方差矩阵
+$$
+\mathbf{x} = \begin{bmatrix}
+\mathbf{x}_1 \\
+\mathbf{x}_2
+\end{bmatrix} \sim \mathcal{CN}(0, \mathbf{C}_{xx}) \\
+\begin{aligned}
+\mathbf{C}_{xx} &= \begin{bmatrix}
+\mathbf{C}_{x_1x_1} & \mathbf{C}_{x_1x_2} \\
+\mathbf{C}_{x_1x_2}^H & \mathbf{C}_{x_2x_2}
+\end{bmatrix} \\
+
+&= \begin{bmatrix}
+\mathbf{C}_{ss} + \mathbf{C}_{w_1w_1} & \exp(-\mathrm{j} \phi )\mathbf{C}_{ss} \mathbf{Q}^H \\
+\exp(\mathrm{j} \phi )\mathbf{Q}\mathbf{C}_{ss} & \mathbf{Q} \mathbf{C}_{ss} \mathbf{Q}^H + \mathbf{C}_{w_2w_2}
+\end{bmatrix}
+\end{aligned}
+$$
+其中
+$$
+\begin{aligned}
+\mathbf{C}_{x_1x_2} &= E\left[ \mathbf{x}_1 \mathbf{x}_2^H \right] \\
+&= \exp(-\mathrm{j} \phi )E\left[ \mathbf{s} \mathbf{s}^H \right] \mathbf{Q}^H \\
+
+\mathbf{C}_{x_2x_2} &= E\left[ \mathbf{x}_2 \mathbf{x}_2^H \right] \\
+&= \mathbf{Q} E\left[ \mathbf{s} \mathbf{s}^H \right] \mathbf{Q}^H + E\left[ \mathbf{w}_2 \mathbf{w}_2^H \right] \\
+&= \mathbf{Q} \mathbf{C}_{ss} \mathbf{Q}^H + \mathbf{C}_{w_2w_2}
+\end{aligned}
+$$
+由公式，由于均值永远为零，所以拿掉第一项
+$$
+\left[\mathbf{I}(\boldsymbol{\xi})\right]_{ij} = \operatorname{tr}\left[ \mathbf{C}^{-1}(\boldsymbol{\xi}) \frac{\partial \mathbf{C}(\boldsymbol{\xi})}{\partial \xi_i} \mathbf{C}^{-1}(\boldsymbol{\xi}) \frac{\partial \mathbf{C}(\boldsymbol{\xi})}{\partial \xi_j} \right]
+$$
+我们需要分别计算出时域协方差矩阵关于所有参数的导数
+$$
+\begin{aligned}
+\frac{\partial \mathbf{C}({\phi})}{\partial \phi} &=  \begin{bmatrix}
+\mathbf{0} & -\mathrm{j} \exp(-\mathrm{j} \phi )\mathbf{C}_{ss} \mathbf{Q}^H \\
+\mathrm{j}\exp(\mathrm{j} \phi )\mathbf{Q}\mathbf{C}_{ss} & \mathbf{0}
+\end{bmatrix} \\
+&= \begin{bmatrix}
+\mathbf{0} & -\mathrm{j} \mathbf{C}_{x_1x_2} \\
+\mathrm{j}\mathbf{C}_{x_1x_2}^H & \mathbf{0}
+\end{bmatrix} \\
+
+\frac{\partial \mathbf{C}({\tau})}{\partial \tau} &=  \begin{bmatrix}
+\mathbf{0} &  \exp(-\mathrm{j} \phi )\mathbf{C}_{ss} \frac{\partial \mathbf{Q}^H}{\partial \tau} \\
+\exp(\mathrm{j} \phi )\frac{\partial \mathbf{Q}}{\partial \tau}\mathbf{C}_{ss} & \frac{\partial \mathbf{Q}}{\partial \tau} \mathbf{C}_{ss} \mathbf{Q}^H + \mathbf{Q} \mathbf{C}_{ss} \frac{\partial \mathbf{Q}^H}{\partial \tau}
+\end{bmatrix} \\
+
+\frac{\partial \mathbf{C}({v})}{\partial v} &=  \begin{bmatrix}
+\mathbf{0} &  \exp(-\mathrm{j} \phi )\mathbf{C}_{ss} \frac{\partial \mathbf{Q}^H}{\partial v} \\
+\exp(\mathrm{j} \phi )\frac{\partial \mathbf{Q}}{\partial v}\mathbf{C}_{ss} & \frac{\partial \mathbf{Q}}{\partial v} \mathbf{C}_{ss} \mathbf{Q}^H + \mathbf{Q} \mathbf{C}_{ss} \frac{\partial \mathbf{Q}^H}{\partial v}
+\end{bmatrix} \\
+\end{aligned}
+$$
+同时，可以算出
+$$
+\begin{aligned}
+\frac{\partial \mathbf{D}_{\tau}}{ \partial\tau} &= -\mathrm{j}  \frac{2 \pi}{N} \mathbf{D}_{\tau} \mathbf{N} \\
+&= -\mathrm{j} \frac{2 \pi}{N} \mathbf{N} \mathbf{D}_{\tau} \\
+
+\frac{\partial \mathbf{D}_{v}}{ \partial v} &= \mathrm{j}  \mathbf{D}_{\tau} \mathbf{N} \\
+&= \mathrm{j}  \mathbf{N} \mathbf{D}_{\tau} 
+\end{aligned}
+$$
+由此
+$$
+\begin{aligned}
+\frac{\partial \mathbf{Q}}{\partial \tau} &= \frac{\partial }{\partial \tau} \left[ \mathbf{D}_{v}\mathbf{F}^H \mathbf{D}_{\tau}\mathbf{F} \right] \\
+&=  \mathbf{D}_{v}\mathbf{F}^H \frac{\partial \mathbf{D}_{\tau}}{ \partial\tau}\mathbf{F} \\
+&= -\mathrm{j} \frac{2 \pi}{N} \mathbf{D}_{v}\mathbf{F}^H \mathbf{D}_{\tau} \mathbf{N} \mathbf{F} \\
+&= -\mathrm{j} \frac{2 \pi}{N} \left(\mathbf{D}_{v}\mathbf{F}^H \mathbf{D}_{\tau} \mathbf{F}\right)\mathbf{F}^H \mathbf{N} \mathbf{F} \\
+&= -\mathrm{j} \frac{2 \pi}{N} \mathbf{Q} \mathbf{F}^H \mathbf{N} \mathbf{F} \\
+\frac{\partial \mathbf{Q}}{\partial v} &= \frac{\partial }{\partial v} \left[ \mathbf{D}_{v}\mathbf{F}^H \mathbf{D}_{\tau}\mathbf{F} \right] \\
+&=  \frac{\partial \mathbf{D}_{v}}{ \partial v}\mathbf{F}^H \mathbf{D}_{\tau} \mathbf{F} \\
+&= \mathrm{j}  \mathbf{N}\left( \mathbf{D}_{\tau} \mathbf{F}^H \mathbf{D}_{\tau} \mathbf{F} \right) \\
+&=  \mathrm{j}  \mathbf{N} \mathbf{Q}
+\end{aligned}
+$$
+然后带入让matlab算就可以得到FIM矩阵了。
+
+**频域**
+
+可以同时对两个通道进行傅里叶变换
+$$
+\begin{aligned}
+\mathbf{F}\mathbf{x}_1 &= \mathbf{F}\mathbf{s} + \mathbf{F}\mathbf{w}_1 \\
+\mathbf{F}\mathbf{x}_2 &= \exp(\mathrm{j} \phi )\mathbf{F}\mathbf{D}_{v}\mathbf{F}^H \mathbf{D}_{\tau}\mathbf{F}\mathbf{s} + \mathbf{F}\mathbf{w}_2 \\
+&= \exp(\mathrm{j} \phi )\mathbf{G}\mathbf{s} + \mathbf{F}\mathbf{w}_2
+\end{aligned}
+$$
+由此等效于
+$$
+\begin{aligned}
+\mathbf{X}_1 &= \mathbf{S} + \mathbf{W}_1 \\
+\mathbf{X}_2 &= \exp(\mathrm{j} \phi )\mathbf{F}\mathbf{D}_{v}\mathbf{F}^H \mathbf{D}_{\tau}\mathbf{S} + \mathbf{W}_2 \\
+&= \exp(\mathrm{j} \phi )\mathbf{G}\mathbf{S} + \mathbf{W}_2
+\end{aligned}
+$$
+化成频域的好处就是协方差矩阵的对角化性质
+$$
+\mathbf{X} = \begin{bmatrix}
+\mathbf{X}_1 \\
+\mathbf{X}_2
+\end{bmatrix} \sim \mathcal{CN}(0, \mathbf{C}_{XX}) \\
+\begin{aligned}
+\mathbf{C}_{XX} &= \begin{bmatrix}
+\mathbf{C}_{X_1X_1} & \mathbf{C}_{X_1X_2} \\
+\mathbf{C}_{X_1X_2}^H & \mathbf{C}_{X_2X_2}
+\end{bmatrix} \\
+
+&= \begin{bmatrix}
+\mathbf{C}_{SS} + \mathbf{C}_{W_1W_1} & \exp(-\mathrm{j} \phi )\mathbf{C}_{SS} \mathbf{G}^H \\
+\exp(\mathrm{j} \phi )\mathbf{G}\mathbf{C}_{SS} & \mathbf{G} \mathbf{C}_{SS} \mathbf{G}^H + \mathbf{C}_{W_2W_2}
+\end{bmatrix}
+\end{aligned}
+$$
+其中
+$$
+\mathbf{C}_{SS} = \operatorname{diag} \begin{bmatrix}
+P_{ss}(\frac{-N / 2}{N}) & \cdots & P_{ss}(\frac{N / 2 - 1}{N})
+\end{bmatrix}
+$$
+这里要十分注意我们时频域转换的方式与最终频域协方差矩阵的范围要一致，都是$[-N/2, N/2-1]$。
+
+我们需要分别计算出频域协方差矩阵关于所有参数的导数
+$$
+\begin{aligned}
+\frac{\partial \mathbf{C}({\phi})}{\partial \phi} &=  \begin{bmatrix}
+\mathbf{0} & -\mathrm{j} \exp(-\mathrm{j} \phi )\mathbf{C}_{SS} \mathbf{G}^H \\
+\mathrm{j}\exp(\mathrm{j} \phi )\mathbf{G}\mathbf{C}_{SS} & \mathbf{0}
+\end{bmatrix} \\
+&= \begin{bmatrix}
+\mathbf{0} & -\mathrm{j} \mathbf{C}_{X_1X_2} \\
+\mathrm{j}\mathbf{C}_{X_1X_2}^H & \mathbf{0}
+\end{bmatrix} \\
+
+\frac{\partial \mathbf{C}({\tau})}{\partial \tau} &=  \begin{bmatrix}
+\mathbf{0} &  \exp(-\mathrm{j} \phi )\mathbf{C}_{SS} \frac{\partial \mathbf{G}^H}{\partial \tau} \\
+\exp(\mathrm{j} \phi )\frac{\partial \mathbf{G}}{\partial \tau}\mathbf{C}_{SS} & \frac{\partial \mathbf{G}}{\partial \tau} \mathbf{C}_{SS} \mathbf{G}^H + \mathbf{G} \mathbf{C}_{SS} \frac{\partial \mathbf{G}^H}{\partial \tau}
+\end{bmatrix} \\
+
+\frac{\partial \mathbf{C}({v})}{\partial v} &=  \begin{bmatrix}
+\mathbf{0} &  \exp(-\mathrm{j} \phi )\mathbf{C}_{SS} \frac{\partial \mathbf{G}^H}{\partial v} \\
+\exp(\mathrm{j} \phi )\frac{\partial \mathbf{G}}{\partial v}\mathbf{C}_{SS} & \frac{\partial \mathbf{G}}{\partial v} \mathbf{C}_{SS} \mathbf{G}^H + \mathbf{G} \mathbf{C}_{SS} \frac{\partial \mathbf{G}^H}{\partial v}
+\end{bmatrix} \\
+\end{aligned}
+$$
+同时，可以算出
+$$
+\begin{aligned}
+\frac{\partial \mathbf{D}_{\tau}}{ \partial\tau} &= -\mathrm{j}  \frac{2 \pi}{N} \mathbf{D}_{\tau} \mathbf{N} \\
+&= -\mathrm{j} \frac{2 \pi}{N} \mathbf{N} \mathbf{D}_{\tau} \\
+
+\frac{\partial \mathbf{D}_{v}}{ \partial v} &= \mathrm{j}  \mathbf{D}_{v} \mathbf{N} \\
+&= \mathrm{j}  \mathbf{N} \mathbf{D}_{v} 
+\end{aligned}
+$$
+由此
+$$
+\begin{aligned}
+\frac{\partial \mathbf{G}}{\partial \tau} &= \frac{\partial }{\partial \tau} \left[ \mathbf{F} \mathbf{D}_{v}\mathbf{F}^H \mathbf{D}_{\tau} \right] \\
+&=  \mathbf{F} \mathbf{D}_{v}\mathbf{F}^H \frac{\partial \mathbf{D}_{\tau}}{ \partial\tau} \\
+&= -\mathrm{j}  \frac{2 \pi}{N} \left( \mathbf{F} \mathbf{D}_{v}\mathbf{F}^H \mathbf{D}_{\tau} \right) \mathbf{N} \\ 
+&= -\mathrm{j}\frac{2 \pi}{N} \mathbf{G}  \mathbf{N}\\
+\frac{\partial \mathbf{G}}{\partial v} &= \frac{\partial }{\partial v} \left[  \mathbf{F} \mathbf{D}_{v}\mathbf{F}^H \mathbf{D}_{\tau} \right] \\
+&= \mathrm{j}\mathbf{F} \mathbf{N} \mathbf{D}_{v} \mathbf{F}^H \mathbf{D}_{\tau} \\
+&=  \mathrm{j}\mathbf{F} \mathbf{N} \mathbf{F}^H\left(\mathbf{F} \mathbf{D}_{v} \mathbf{F}^H \mathbf{D}_{\tau} \right) \\
+&=  \mathrm{j}\mathbf{F} \mathbf{N} \mathbf{F}^H \mathbf{G}
+\end{aligned}
+$$
+可以化简为
+$$
+\begin{aligned}
+\frac{\partial \mathbf{G}}{\partial \tau} &=  -\mathrm{j}\frac{2 \pi}{N} \mathbf{G}  \mathbf{N} \\
+\frac{\partial \mathbf{G}}{\partial v} &= \mathrm{j} \mathbf{F} \mathbf{N} \mathbf{F}^H\mathbf{G}
+\end{aligned}
+$$
+然后带入让matlab算就可以得到FIM矩阵了。
+
+如果能想办法化简，就能得到最开始的FIM积分表达式，可惜能力有限。。。
 
 ## 确定性已知假设
 

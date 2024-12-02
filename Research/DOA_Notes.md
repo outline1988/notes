@@ -50,14 +50,14 @@ $$
 
 波束形成技术引入一个与某个方向$\theta$对应的空域滤波系数$\mathbf{w}$，或写为$\mathbf{w}(\theta)$，由此空域滤波输出为
 $$
-\mathbf{y}(t; \theta) = \mathbf{w}^{H} \mathbf{x}(t) = \mathbf{w}^{H}(\theta) \mathbf{x}(t; \theta_d)
+\mathbf{y}(t; \theta) = \mathbf{w}^{H} \mathbf{x}(t) = \mathbf{w}^{H}(\theta) \mathbf{x}(t; \theta_t)
 $$
 同样，输出功率为
 $$
 \begin{aligned}
 P(\theta) &= E\left[ | \mathbf{y}(t; \theta) |^2 \right] \\
-&= \mathbf{w}(\theta)^{H} E\left[ \mathbf{x}(t; \theta_d) \mathbf{x}^{H}(t; \theta_d) \right] \mathbf{w}(\theta) \\
-&= \mathbf{w}(\theta)^{H} R_{xx}(\theta_d) \mathbf{w}(\theta) \\
+&= \mathbf{w}(\theta)^{H} E\left[ \mathbf{x}(t; \theta_t) \mathbf{x}^{H}(t; \theta_t) \right] \mathbf{w}(\theta) \\
+&= \mathbf{w}(\theta)^{H} R_{xx}(\theta_t) \mathbf{w}(\theta) \\
 &= \mathbf{w}^{H} R_{xx} \mathbf{w} \\
 \end{aligned}
 $$
@@ -98,7 +98,7 @@ $$
 
 这个优化问题无法求解，首先，对于所有的$\theta_t$，都有一个优化目标，所以有无数个优化目标。其二，$\theta_t$如果与$\theta$不一致，可能认为能够将所有不一致的$\theta_t$都放在$R_{xx}$中，但这显然做不到，由这一点，是否可以有先验知识来假设$\theta_t$会在哪里出现呢。
 
-### CDF
+### CBF
 
 一个快拍的回波信号本质上是一个复指数函数
 $$
@@ -232,4 +232,23 @@ $$
 同时，也应该意识到，即使是对信号估计的性能，在多个信源的情况下，当搜索角度与其中一个信源重合时，此时得到对信号的估计并不是MVU估计量，因为当对该角度的信号进行估计时，考虑的噪声协方差矩阵包含了该角度的信号，这是多余的。而对于CBF来说，其对信号的估计是在假设噪声为高斯白噪声时的MVU估计量，所以当信源只有一个时，其对信号估计的性能就是最优的。
 
 ### MUSIC
+
+计算接收信号的协方差矩阵
+$$
+\begin{aligned}
+R_{xx} &= E\left[ \mathbf{x}(t) \mathbf{x}^H(t) \right] \\
+&= E\left[ \left(A\mathbf{s}(t) + \mathbf{e}(t)\right) \left(A\mathbf{s}(t) + \mathbf{e}(t)\right)^H \right] \\
+&= A E\left[ \mathbf{s}(t) \mathbf{s}^H(t)\right] A^H + E\left[ \mathbf{e}(t) \mathbf{e}^H(t)\right] \\
+&= A R_{ss} A^H + R_{ee}
+\end{aligned}
+$$
+这里介绍一个结论，即$AA^H$与$A$有相同的列空间。
+
+单独对$R_{xx}$的第一项$A R_{ss} A^H$进行分析，由于$R_{ss}$为正定矩阵，所以其列空间与A的列空间一致，同时，$\operatorname{rank}(A) = \operatorname{rank}(AR_{ss}A^H)= K$，所以对$A R_{ss} A^H$进行特征值分解，可以得到两个空间，一是特征值不为零对应的空间，称为“信号空间”；二是，特征值为零对应的空间，称为“噪声空间”。又由于$A R_{ss} A^H$本身具有的对称矩阵的特性，所以信号空间和噪声空间是正交的。
+
+同时，若$R_{ee} = \sigma^2 I$为白噪声协方差矩阵，那么$R_{xx}$的特征值就是$A R_{ss} A^H$特征值的平移，相对应的特征空间保持不变。MUSIC根据这个特性来进行谱估计。
+
+因为$A$的列空间是由$K$个不同方向的导向矢量张成而来，由此我们只需要搜索不同的$\theta$对应的导向矢量，判断其是否在信号空间内，或是否正交于噪声空间。
+
+### 空域平滑
 
