@@ -17,6 +17,12 @@ A \boldsymbol{x}
 \end{aligned}
 $$
 
+同样，可以画根据伪逆的公式来画一个类似的图，以证明伪逆与原矩阵的某种对称性
+$$
+A^{\dagger} \boldsymbol{b} = \boldsymbol{x}_r
+$$
+
+
 ### 特征值和特征向量
 
 #### 简介
@@ -101,5 +107,58 @@ $$
 $$
 C = D^{\top}D
 $$
-其中矩阵$D$为可逆方阵，其可以作为一个随机矢量的白化滤波器。、
+其中矩阵$D$为可逆方阵，其可以作为一个随机矢量的白化滤波器。
 
+#### 条件数与线性方程的敏感度
+
+#### 广义逆
+
+
+
+### 向量链式法则
+
+参考：The Matrix Calculus You Need For Deep Learning
+
+经过微积分的学习后，标量对标量的求导应该了然于心。但是随着向量的不断出现，我们需要克服标量对向量的求导，向量对向量的求导这两种类型。同时我们希望微积分已经学过的链式求导法则依然适用在标量中，首先需要了解三个基本法则：
+
+- **单变量单链的求导法则**：顾名思义，在整个变量的传递过程中，一直是以单变量单链进行传递的，比如$y = \sin(x^2)$的传递过程为$x \rightarrow x^2 \rightarrow \sin(x^2)$，这种单变量单链的求导是最简单的，可以直接套用链式法则。
+
+- **单变量多链的求导法则**：不同于单链的求导法则，最底层的单变量$x$可以以多种路径（多链）的方式来最终影响函数值，比如$y = \sin(x + x^2)$，变量$x$一条路径为$x \rightarrow x^2 \rightarrow \sin(x^2 + u_2)$，另一条路径为$x \rightarrow \sin(u_1 + x)$，对于这样的多链求导，求导法则可以总结为
+  $$
+  \frac{\partial f(u_1,\ldots,u_{n+1})}{\partial x}=\sum_{i=1}^{n+1}\frac{\partial f}{\partial u_i}\frac{\partial u_i}{\partial x}
+  $$
+  多链的每一条链的求导都按照单链求导法则进行，最后再所有链加在一起。
+
+**向量单链的求导法则**单独列出：对于向量的求导法则，习惯上主要包括两种，一是标量对列向量求导，求导的结果是列向量；二是列向量对行向量求导，求导的结果是一个矩阵（雅可比矩阵的形式）。然而，这两种方式在求导公式的统一上是不和谐的，因为向量的求导有两种准则，一是分子布局，二是分母布局（具体不同的布局是怎样的不需要关心），只需要知道习惯的标量对向量求导和向量对向量求导的排列方式是不同的布局，这就给了统一的公式造成了困难。
+
+所以为了统一，在向量对向量求导的情形下，规定（雅可比矩阵形式）
+$$
+\left[\frac{\mathrm{d} \mathbf{f}(\mathbf{x})}{\mathrm{d}\mathbf{x}^T}\right]_{ij} = \frac{\mathrm{d} f_i(\mathbf{x})}{\mathrm{d} x_j}
+$$
+对于雅可比形式的链式求导，可直接使用公式
+$$
+\frac{\mathrm{d} \mathrm{f}\left( \mathbf{g}(\mathbf{x}) \right)}{\mathrm{d} \mathbf{x}^T} = \frac{\partial\mathbf{f}}{\partial\mathbf{g}^T}\frac{\partial\mathbf{g}}{\partial \mathbf{x}^T}
+$$
+而标量对向量的求导可以视为雅可比矩阵形式的转置
+$$
+\begin{aligned}
+\frac{\mathrm{d} f(\mathbf{x})}{\mathrm{d} \mathbf{x}} = \left[\frac{\mathrm{d} f(\mathbf{x})}{\mathrm{d} \mathbf{x}^T}\right]^T 
+\end{aligned}
+$$
+所以求导可以借助雅可比形式的链式法则
+$$
+\begin{aligned}
+\frac{\mathrm{d} f(\mathbf{g} \left( \mathbf{x} \right) )}{\mathrm{d} \mathbf{x}} &= \left[\frac{\mathrm{d} f(\mathbf{g} \left( \mathbf{x} \right) )}{\mathrm{d} \mathbf{x}^T}\right]^T \\
+&= \left[\frac{\partial{f}}{\partial\mathbf{g}^T}\frac{\partial\mathbf{g}}{\partial \mathbf{x}^T}\right]^T \\
+\end{aligned}
+$$
+几个例子：
+$$
+\begin{aligned}
+\frac{\mathrm{d} (\mathbf{x}^T \mathbf{A} \mathbf{x})}{\mathrm{d} \mathbf{x} } &= 
+\left[\frac{\mathrm{d} (\mathbf{x}^T \mathbf{A} \mathbf{x})}{\mathrm{d} \mathbf{x} ^T}\right]^T \\
+&= \left[\frac{\mathrm{d} (\mathbf{u}_1^T \mathbf{u}_2)}{\mathrm{d} \mathbf{x}^T} \right]^T\\
+&= \left[\frac{\mathrm{d} (\mathbf{u}_1^T \mathbf{u}_2)}{\mathrm{d} \mathbf{u}_1^T}  \frac{\mathrm{d} \mathbf{u}_1}{\mathrm{d} \mathbf{x}^T} + \frac{\mathrm{d} (\mathbf{u}_1^T \mathbf{u}_2)}{\mathrm{d} \mathbf{u}_2^T}  \frac{\mathrm{d} \mathbf{u}_2}{\mathrm{d} \mathbf{x}^T} \right]^T \\
+&= \mathbf{A}\mathbf{x} + \mathbf{A}^T\mathbf{x}
+\end{aligned}
+$$
