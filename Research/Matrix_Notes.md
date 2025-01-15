@@ -119,7 +119,7 @@ $$
 
 参考：The Matrix Calculus You Need For Deep Learning
 
-经过微积分的学习后，标量对标量的求导应该了然于心。但是随着向量的不断出现，我们需要克服标量对向量的求导，向量对向量的求导这两种类型。同时我们希望微积分已经学过的链式求导法则依然适用在标量中，首先需要了解三个基本法则：
+经过微积分的学习后，标量对标量的求导应该了然于心。但是随着向量的不断出现，我们需要克服标量对向量的求导，向量对向量的求导这两种类型。同时我们希望微积分已经学过的链式求导法则依然适用在向量的求导中，首先需要了解三个基本法则：
 
 - **单变量单链的求导法则**：顾名思义，在整个变量的传递过程中，一直是以单变量单链进行传递的，比如$y = \sin(x^2)$的传递过程为$x \rightarrow x^2 \rightarrow \sin(x^2)$，这种单变量单链的求导是最简单的，可以直接套用链式法则。
 
@@ -137,7 +137,7 @@ $$
 $$
 对于雅可比形式的链式求导，可直接使用公式
 $$
-\frac{\mathrm{d} \mathrm{f}\left( \mathbf{g}(\mathbf{x}) \right)}{\mathrm{d} \mathbf{x}^T} = \frac{\partial\mathbf{f}}{\partial\mathbf{g}^T}\frac{\partial\mathbf{g}}{\partial \mathbf{x}^T}
+\frac{\mathrm{d} \mathbf{f}\left( \mathbf{g}(\mathbf{x}) \right)}{\mathrm{d} \mathbf{x}^T} = \frac{\partial\mathbf{f}}{\partial\mathbf{g}^T}\frac{\partial\mathbf{g}}{\partial \mathbf{x}^T}
 $$
 而标量对向量的求导可以视为雅可比矩阵形式的转置
 $$
@@ -162,3 +162,133 @@ $$
 &= \mathbf{A}\mathbf{x} + \mathbf{A}^T\mathbf{x}
 \end{aligned}
 $$
+### Total Least Square
+
+考虑一个二维曲线拟合的问题，给定坐标点$\left\{(x_i, y_i)\right\}_{i = 1}^{N}$，我们使用线性模型来拟合这条曲线
+$$
+\mathbf{y} \approx \mathbf{X} \mathbf{a}
+$$
+其中，$\mathbf{y}$就是输出数据$\left\{y_i\right\}_{i = 1}^{N}$组成的列向量，而$\mathbf{X} \in \mathbb{R}^{m \times n}$是由输入数据$\left\{x_i\right\}_{i = 1}^{N}$经过预处理（比如多项式函数）而组成的矩阵，满足$m > n$，是列满秩矩阵。例如需要拟合的模型为
+$$
+y \approx a_1 x + a_2 x^2
+$$
+则我们可以写出线性模型为
+$$
+\begin{bmatrix}
+y_1 \\
+\vdots \\
+y_N
+\end{bmatrix} = \begin{bmatrix}
+x_1 & x_1^2 \\
+\vdots & \vdots \\
+x_N & x_N^2
+\end{bmatrix} 
+\begin{bmatrix}
+a_1 \\
+a_2
+\end{bmatrix}
+$$
+在给定了所有的坐标点后，需要我们确定的就是参数向量$\mathbf{a}$。显然，在学习了LS方法后，可以直接写出参数的估计量为
+$$
+\hat{\mathbf{a}}_{\text{LS}} = \left(\mathbf{X}^T\mathbf{X}\right)^{-1}\mathbf{X}^T \mathbf{y}
+$$
+物理意义就是将向量$\mathbf{y}$投影到$\mathbf{X}$的列空间中。同时从另一个角度来看，LS找到了最小二范数$\| \Delta \mathbf{y} \|_2$，使得下式成立
+$$
+\mathbf{y} + \Delta\mathbf{y} = \mathbf{X} \mathbf{a}
+$$
+注意，这个$\Delta \mathbf{y}$与$\mathbf{X}$的列空间是正交的，所以才会使二范数最小。
+
+然而，现实情况中，输入数据$\mathbf{x}$和输出数据$\mathbf{y}$都有可能受到扰动，而最小二乘默认假设输入数据$\mathbf{x}$是精确的，一个更自然的想法是使得下式矩阵的Frobenius范数在某个约束下最小（至于为什么不是其他范数，这是为了求解的方便）
+$$
+\min \left\| \begin{bmatrix}
+\Delta\mathbf{X} & \Delta\mathbf{y}
+\end{bmatrix} \right\|^2_\text{F} \\
+\text{s.t.} \quad \mathbf{y} + \Delta\mathbf{y} = (\mathbf{X} + \Delta\mathbf{X}) \mathbf{a}
+$$
+Frobenius范数是矩阵范数的一种，满足以下特性
+$$
+\left\| \mathbf{Z} \right\|^2_\text{F} = \sum_{i, j} z_{ij}^2 = \operatorname{tr}(\mathbf{Z}^T\mathbf{Z}) = \sum_i \sigma^2_i
+$$
+其中，$\sigma_i$是矩阵的奇异值。
+
+从直观意义上来说，我们假设输入数据和输出数据都受到的扰动，故我们需要找到最小的扰动项，使得线性模型的关系成立，此时隐含着假设了输入数据的扰动$\Delta \mathbf{X}$和输出数据的扰动$\Delta \mathbf{y}$的数量级是相当的。
+
+Eckart-Young定理：给定一个秩为$n$的矩阵$\mathbf{Z}$，使得$\left\| \hat{\mathbf{Z}} - \mathbf{Z} \right\|^2_{\text{F}}$最小的秩$\hat{n}$矩阵（$\hat{n} < n$）为矩阵$\mathbf{Z}$进行奇异值展开后舍弃最小的$n - \hat{n}$个奇异值而形成的矩阵$\hat{\mathbf{Z}}$。
+
+我们可以将上述优化问题的约束方程换一种形式
+$$
+\min \left\| \begin{bmatrix}
+\Delta\mathbf{X} & \Delta\mathbf{y}
+\end{bmatrix} \right\|^2_\text{F} \\
+\text{s.t.} \quad \begin{bmatrix}
+\mathbf{X} + \Delta\mathbf{X} &  \mathbf{y} + \Delta\mathbf{y}
+\end{bmatrix} \begin{bmatrix}
+-\mathbf{a} \\
+1
+\end{bmatrix}  = \mathbf{0}
+$$
+从上式可以看出，向量$\begin{bmatrix} \mathbf{a} &1 \end{bmatrix}^T$为矩阵$\begin{bmatrix} \mathbf{X} + \Delta\mathbf{X} &  \mathbf{y} + \Delta\mathbf{y} \end{bmatrix} \in \mathcal{R}^{m \times (n + 1)}$的零空间，由于假设$\mathbf{X}$为列满秩矩阵，所以该矩阵的秩一定为$n$。
+
+同时，我们得到数据形成的矩阵$\begin{bmatrix} \mathbf{X} &  \mathbf{y} \end{bmatrix} \in \mathcal{R}^{m \times (n + 1)}$由于受到的扰动，其秩为$n + 1$，所以受到了Eckart-Young定理的影响，我们就可以通过将矩阵$\begin{bmatrix} \mathbf{X} &  \mathbf{y} \end{bmatrix}$奇异值展开并抛弃最小值来得到一个秩为$n$的矩阵，而这个矩阵正是我们想要找到的满足上述优化问题的矩阵$\begin{bmatrix} \mathbf{X} + \Delta\mathbf{X} &  \mathbf{y} + \Delta\mathbf{y} \end{bmatrix}$，然后就能够通过找到该矩阵的零空间的方式来得到TLS解。
+
+可以更好的简化上述的流程，对矩阵进行奇异值展开
+$$
+\begin{aligned}
+\begin{bmatrix} 
+\mathbf{X} &  \mathbf{y} 
+\end{bmatrix} &= \sum\limits_{i = 1}^{n + 1} \sigma_i \mathbf{u}_i \mathbf{v}_i^T \\
+&= \sum\limits_{i = 1}^{n} \sigma_i \mathbf{u}_i \mathbf{v}_i^T +  \sigma_{n + 1} \mathbf{u}_{n + 1} \mathbf{v}_{n + 1}^T  \\
+&= \begin{bmatrix} \mathbf{X} + \Delta\mathbf{X} &  \mathbf{y} + \Delta\mathbf{y} \end{bmatrix} + 
+\begin{bmatrix} 
+\mathbf{X} &  \mathbf{y} 
+\end{bmatrix}  \mathbf{v}_{n + 1} \mathbf{v}_{n + 1}^T
+\end{aligned}
+$$
+两边同时右乘最优一个右奇异向量$\mathbf{v}_{n + 1}$，并交换位置
+$$
+\begin{aligned}
+\begin{bmatrix} \mathbf{X} + \Delta\mathbf{X} &  \mathbf{y} + \Delta\mathbf{y} \end{bmatrix} \mathbf{v}_{n + 1} &= \begin{bmatrix} 
+\mathbf{X} &  \mathbf{y} 
+\end{bmatrix} \mathbf{v}_{n + 1} - \begin{bmatrix} 
+\mathbf{X} &  \mathbf{y} 
+\end{bmatrix}   \mathbf{v}_{n + 1} \mathbf{v}_{n + 1}^T \mathbf{v}_{n + 1} \\
+&= \mathbf{0}
+\end{aligned}
+$$
+所以我们可以轻松得到解
+$$
+\hat{\mathbf{a}}_{\text{TLS}} = -\frac{ \left [ \mathbf{v}_{n + 1}\right]_{1 : n}} {\left [ \mathbf{v}_{n + 1}\right]_{n + 1}}
+$$
+注意到
+$$
+\begin{aligned}
+\begin{bmatrix}
+\Delta\mathbf{X} & \Delta\mathbf{y}
+\end{bmatrix} &= \begin{bmatrix} 
+\mathbf{X} &  \mathbf{y} 
+\end{bmatrix}  \mathbf{v}_{n + 1} \mathbf{v}_{n + 1}^T \\
+&= \begin{bmatrix} 
+\mathbf{X} &  \mathbf{y} 
+\end{bmatrix} \mathbf{P}_{v}
+\end{aligned}
+$$
+从这个角度来说，TLS的残差项就是增广矩阵的行向量投影到行奇异空间中对应奇异值最小的子空间中。既然能投影到行奇异空间的子空间中，那么为什么不可以投影到列奇异空间的子空间中呢？所以做以下尝试
+$$
+\begin{aligned}
+\mathbf{P}_{u} \begin{bmatrix} 
+\mathbf{X} &  \mathbf{y} 
+\end{bmatrix} &=  
+\mathbf{u}_{n + 1} \mathbf{u}_{n + 1}^T \begin{bmatrix} 
+\mathbf{X} &  \mathbf{y} 
+\end{bmatrix} \\
+&= \mathbf{u}_{n + 1} \mathbf{u}_{n + 1}^T \sum\limits_{i = 1}^{n + 1} \sigma_i \mathbf{u}_i \mathbf{v}_i^T \\
+&= \sigma_{n + 1} \mathbf{u}_{n + 1} \mathbf{v}_{n + 1}^T \\
+&= \begin{bmatrix} 
+\mathbf{X} &  \mathbf{y} 
+\end{bmatrix} \mathbf{P}_{v}
+\end{aligned}
+$$
+可以看到，从投影到奇异空间的角度来说，行向量投影和列向量投影是等价地，这也符合直觉，因为奇异值分解的本质就是找到了行空间和列空间的正交基。
+
+由此可以进行总结，TLS的方法本质上同LS一样都是进行降维操作，前者在于将增广矩阵$\begin{bmatrix} \mathbf{X} &  \mathbf{y} \end{bmatrix}$进行降维，而后者在于将$\mathbf{y}$降维至与$\mathbf{X}$同一列空间中。TLS更加贴近传统意义上的PCA算法，其依靠的正是SVD分解寻找行空间与列空间正交基的能力。
+
