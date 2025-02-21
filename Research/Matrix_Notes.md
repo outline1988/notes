@@ -164,11 +164,14 @@ $$
 $$
 ### Total Least Square
 
+参考：The total least squares problem: computational aspects and analysis
+
+#### Basic TLS
 考虑一个二维曲线拟合的问题，给定坐标点$\left\{(x_i, y_i)\right\}_{i = 1}^{N}$，我们使用线性模型来拟合这条曲线
 $$
 \mathbf{y} \approx \mathbf{X} \mathbf{a}
 $$
-其中，$\mathbf{y}$就是输出数据$\left\{y_i\right\}_{i = 1}^{N}$组成的列向量，而$\mathbf{X} \in \mathbb{R}^{m \times n}$是由输入数据$\left\{x_i\right\}_{i = 1}^{N}$经过预处理（比如多项式函数）而组成的矩阵，满足$m > n$，是列满秩矩阵。例如需要拟合的模型为
+其中，$\mathbf{y}$就是输出数据$\left\{y_i\right\}_{i = 1}^{N}$组成的列向量，而$\mathbf{X} \in \mathbb{R}^{m \times n}$是由输入数据$\left\{x_i\right\}_{i = 1}^{N}$经过预处理（比如多项式函数）而组成的矩阵，满足$m > n$，是列满秩矩阵（这个假设至关重要，若不为列满秩，则TLS解不存在）。例如需要拟合的模型为
 $$
 y \approx a_1 x + a_2 x^2
 $$
@@ -227,9 +230,9 @@ $$
 1
 \end{bmatrix}  = \mathbf{0}
 $$
-从上式可以看出，向量$\begin{bmatrix} \mathbf{a} &1 \end{bmatrix}^T$为矩阵$\begin{bmatrix} \mathbf{X} + \Delta\mathbf{X} &  \mathbf{y} + \Delta\mathbf{y} \end{bmatrix} \in \mathcal{R}^{m \times (n + 1)}$的零空间，由于假设$\mathbf{X}$为列满秩矩阵，所以该矩阵的秩一定为$n$。
+从上式可以看出，向量$\begin{bmatrix} -\mathbf{a} &1 \end{bmatrix}^T$为矩阵$\begin{bmatrix} \mathbf{X} + \Delta\mathbf{X} &  \mathbf{y} + \Delta\mathbf{y} \end{bmatrix} \in \mathcal{R}^{m \times (n + 1)}$的零空间（行空间的正交子空间），由于假设$\mathbf{X}$为列满秩矩阵，所以该矩阵的秩一定为$n$。
 
-同时，我们得到数据形成的矩阵$\begin{bmatrix} \mathbf{X} &  \mathbf{y} \end{bmatrix} \in \mathcal{R}^{m \times (n + 1)}$由于受到的扰动，其秩为$n + 1$，所以受到了Eckart-Young定理的影响，我们就可以通过将矩阵$\begin{bmatrix} \mathbf{X} &  \mathbf{y} \end{bmatrix}$奇异值展开并抛弃最小值来得到一个秩为$n$的矩阵，而这个矩阵正是我们想要找到的满足上述优化问题的矩阵$\begin{bmatrix} \mathbf{X} + \Delta\mathbf{X} &  \mathbf{y} + \Delta\mathbf{y} \end{bmatrix}$，然后就能够通过找到该矩阵的零空间的方式来得到TLS解。
+同时，我们得到数据形成的矩阵$\begin{bmatrix} \mathbf{X} &  \mathbf{y} \end{bmatrix} \in \mathcal{R}^{m \times (n + 1)}$由于受到的扰动，该矩阵的秩（一定大于等于$n$）可以分为两种情况讨论：若秩为$n$，那么可以直接求解这个方程，此时的解就是该问题下的TLS解，最小的Frobenius范数就是零；接下来都在解决秩为$n + 1$的情况。受到了Eckart-Young定理的影响，我们就可以通过将矩阵$\begin{bmatrix} \mathbf{X} &  \mathbf{y} \end{bmatrix}$奇异值展开并抛弃最小值来得到一个秩为$n$的矩阵，而这个矩阵正是我们想要找到的满足上述优化问题的矩阵$\begin{bmatrix} \mathbf{X} + \Delta\mathbf{X} &  \mathbf{y} + \Delta\mathbf{y} \end{bmatrix}$，然后就能够通过找到该矩阵的零空间（维度为1）的方式来得到TLS解。
 
 可以更好的简化上述的流程，对矩阵进行奇异值展开
 $$
@@ -291,4 +294,91 @@ $$
 可以看到，从投影到奇异空间的角度来说，行向量投影和列向量投影是等价地，这也符合直觉，因为奇异值分解的本质就是找到了行空间和列空间的正交基。
 
 由此可以进行总结，TLS的方法本质上同LS一样都是进行降维操作，前者在于将增广矩阵$\begin{bmatrix} \mathbf{X} &  \mathbf{y} \end{bmatrix}$进行降维，而后者在于将$\mathbf{y}$降维至与$\mathbf{X}$同一列空间中。TLS更加贴近传统意义上的PCA算法，其依靠的正是SVD分解寻找行空间与列空间正交基的能力。
+
+#### Extension TLS
+我们将TLS方法推广到更为常见的情况，模型如下
+$$
+\mathbf{A} \mathbf{X} \approx \mathbf{B}
+$$
+其中，$\mathbf{A} \in \mathbb{R}^{m \times n}$，$\mathbf{X} \in \mathbb{R}^{n \times d}$，$\mathbf{B} \in \mathbb{R}^{m \times d}$，假设$\mathbf{A}$为列满秩矩阵（overdetermined），满足$m > n$，则找到TLS解等价于求解如下优化问题
+$$
+\min \left\| \begin{bmatrix}
+\Delta\mathbf{A} & \Delta\mathbf{B}
+\end{bmatrix} \right\|^2_\text{F} \\
+\text{s.t.} \quad (\mathbf{A} + \Delta\mathbf{A}) \mathbf{X} = \mathbf{B} + \Delta\mathbf{B}
+$$
+其中，$\begin{bmatrix} \Delta\mathbf{A} & \Delta\mathbf{B} \end{bmatrix} \in \mathbb{R}^{m \times (n + d)}$，可以得到一个等价的优化问题
+$$
+\min \left\| \begin{bmatrix}
+\Delta\mathbf{A} & \Delta\mathbf{B}
+\end{bmatrix} \right\|^2_\text{F} \\
+\text{s.t.} \quad \begin{bmatrix}
+\mathbf{A} + \Delta\mathbf{A} &  \mathbf{B} + \Delta\mathbf{B}
+\end{bmatrix} \begin{bmatrix}
+-\mathbf{X} \\
+\mathbf{I}
+\end{bmatrix}  = \mathbf{0}
+$$
+可以看到，找到该问题的TLS解，等价于找到矩阵$\begin{bmatrix} \mathbf{A} + \Delta\mathbf{A} &  \mathbf{B} + \Delta\mathbf{B} \end{bmatrix}$的零空间，由解的形式可以看出（唯一且列满秩），这个零空间的维度一定为$d$，换句话说，矩阵$\begin{bmatrix} \mathbf{A} + \Delta\mathbf{A} &  \mathbf{B} + \Delta\mathbf{B} \end{bmatrix}$的行空间维度为$n$。
+
+对于原来的矩阵$\begin{bmatrix} \mathbf{A} & \mathbf{B} \end{bmatrix}$，假设该矩阵的秩为$r = \operatorname{rank}(\begin{bmatrix} \mathbf{A} & \mathbf{B} \end{bmatrix})$，由于假设$\mathbf{A}$为列满秩矩阵（$m > n$），故一定有$r \geq n$。从列空间的角度来看待，无论是LS还是TLS，我们都试图对矩阵$\begin{bmatrix} \mathbf{A} & \mathbf{B} \end{bmatrix}$的列空间进行某种降维，使得降维后的列空间维度为$n$，这是解出一个特定解的必要条件（之所以是必要条件，是因为即使降维成功了，后续也不一定能解出来，这里不考虑这种情况，统一认为降维成功后，后续的求解没有问题，大部分都是这种情况）
+
+上述的过程可以写为
+$$
+\begin{aligned}
+\begin{bmatrix} 
+\mathbf{A} &  \mathbf{B} 
+\end{bmatrix} &= \sum\limits_{i = 1}^{r} \sigma_i \mathbf{u}_i \mathbf{v}_i^T \\
+&= \sum\limits_{i = 1}^{n} \sigma_i \mathbf{u}_i \mathbf{v}_i^T +  
+\sum\limits_{j = n + 1}^{r} \sigma_{j} \mathbf{u}_{j} \mathbf{v}_{j}^T  \\
+&= \mathbf{U}_1 \mathbf{\Sigma}_1 \mathbf{V}_1 + \mathbf{U}_2 \mathbf{\Sigma}_2 \mathbf{V}_2  \\
+&= \begin{bmatrix} \mathbf{A} + \Delta\mathbf{A} &  \mathbf{B} + \Delta\mathbf{B} \end{bmatrix} -
+\begin{bmatrix} 
+\Delta\mathbf{A} &  \Delta\mathbf{B} 
+\end{bmatrix}
+\end{aligned} \\
+$$
+
+$$
+\begin{aligned}
+\mathbf{U} \mathbf{\Sigma} \mathbf{V} = \begin{bmatrix}
+\mathbf{U}_1 & \mathbf{U}_2
+\end{bmatrix}
+\begin{bmatrix}
+\mathbf{\Sigma}_1 & \\
+& \mathbf{\Sigma}_2
+\end{bmatrix}
+\begin{bmatrix}
+\mathbf{V}_1^T \\ \mathbf{V}_2^T
+\end{bmatrix}
+\end{aligned}
+$$
+
+其中，$\mathbf{\Sigma}_1 \in \mathbb{R}^{n \times n}$是对角线矩阵，而$\mathbf{\Sigma}_2 \in \mathbb{R}^{(m - n) \times p}$为非对角线。
+
+由此，降维后矩阵$\begin{bmatrix} \mathbf{A} + \Delta\mathbf{A} &  \mathbf{B} + \Delta\mathbf{B} \end{bmatrix}$对应的线性方程组就是一个compatible的问题，我们假设这个线性方程组有解且唯一
+$$
+\begin{aligned}
+\begin{bmatrix} \mathbf{A} + \Delta\mathbf{A} &  \mathbf{B} + \Delta\mathbf{B} \end{bmatrix} &= \mathbf{U}_1 \mathbf{\Sigma}_1 \mathbf{V}_1^T \\
+&= \begin{bmatrix} 
+\mathbf{U}_1 \mathbf{\Sigma}_1 \mathbf{V}_{11}^T &  \mathbf{U}_1 \mathbf{\Sigma}_1 \mathbf{V}_{21}^T
+\end{bmatrix}
+\end{aligned}
+$$
+从一种角度来说，我们知道$\begin{bmatrix} \mathbf{A} + \Delta\mathbf{A} &  \mathbf{B} + \Delta\mathbf{B} \end{bmatrix}$的零空间就是$\mathbf{V}_2$，所以我们只需要将$\mathbf{V}_2$整理为解的形式就行（$\mathbf{V}_{22}$非奇异以及$\sigma_{n} > \sigma_{n + 1}$）
+$$
+\mathbf{X}_{\text{TLS}} = -\mathbf{V}_{12}\mathbf{V}_{22}^{-1}
+$$
+从另一种角度来说，也可以直接解出$(\mathbf{A} + \Delta\mathbf{A}) \mathbf{X} = \mathbf{B} + \Delta\mathbf{B}$这个线性方程组，这个线性方程组可以写为$\mathbf{U}_1 \mathbf{\Sigma}_1 \mathbf{V}_{11}^T \mathbf{X} = \mathbf{U}_1 \mathbf{\Sigma}_1 \mathbf{V}_{21}^T$，由此可以得到解为（$\mathbf{V}_{11}$非奇异以及$\sigma_{n} > \sigma_{n + 1}$）
+$$
+\mathbf{X}_{\text{TLS}} = \left(\mathbf{V}_{11}^T \right)^{-1}\mathbf{V}_{21}^T = \left(\mathbf{V}_{21} \mathbf{V}_{11}^{-1}\right)^T
+$$
+总结来说，线性模型的问题，任何方法都需要解决两个子问题：
+
+1. 解决从incompatible到compatible的问题；
+2. 在compatible问题中解决无数解的问题。
+
+对于LS来说，直接投影到观测矩阵的列空间中可以直接解决第二个问题，而第二个问题的解法是极小范数；而对于TLS来说，将所有列向量投影到增广矩阵最小奇异值的子空间在大多数情况下能够解决第一个问题，仍然在小部分情况下会失效（即最小右奇异向量的最后一个元素为零，这里不考虑失效的情况），而第二个问题的解决是与LS是一样的。
+
+TLS就此完结，还有很多东西没有谈到，我都不会，具体涉及了再去翻书吧。。。
 

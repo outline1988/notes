@@ -39,7 +39,7 @@ $$
 $$
 其中，$\mathbf{C}(\boldsymbol{\theta})$是拥有Toeplitz结构的协方差矩阵，等效于拥有功率谱密度$P_{xx}(f; \boldsymbol{\theta})$，则其似然函数拥有渐近形式
 $$
-\ln p(\mathbf{x}) -\frac{N}{2} \ln 2 \pi - \frac{N}{2} \int_{-1 / 2}^{1 / 2} \left( \ln P_{xx}(f; \boldsymbol{\theta}) +  \frac{I(f)}{P_{xx}(f; \boldsymbol{\theta})} \right) \mathrm{d} f \\
+\ln p(\mathbf{x}) =  -\frac{N}{2} \ln 2 \pi - \frac{N}{2} \int_{-1 / 2}^{1 / 2} \left( \ln P_{xx}(f; \boldsymbol{\theta}) +  \frac{I(f)}{P_{xx}(f; \boldsymbol{\theta})} \right) \mathrm{d} f \\
 I(f) = \frac{1}{N} \left|\sum\limits_{n = 0}^{N} x[n] \exp(\mathrm{j} 2 \pi f n)\right|^2
 $$
 其中，$I(f)$为数据$\mathbf{x}$的周期图。
@@ -72,7 +72,7 @@ $$
 $$
 其中，$\mathbf{s}$为确定性信号，$\mathbf{n}$为零均值WSS随机过程。则其FIM可写为
 $$
-\left[\mathbf{I}(\boldsymbol{\theta})\right]_{ij} = N\int_{- 1 /2}^{1 / 2} \frac{{d}_i^*(f;  \boldsymbol{\theta}) {d}_i(f; \boldsymbol{\theta})}{P_{nn}(f; \boldsymbol{\theta})} {d} f + \frac{N}{2} \int_{-1 / 2}^{1 / 2} \frac{\partial \ln P_{nn}(f; \boldsymbol{\theta})}{\partial \theta_i} \frac{\partial \ln P_{nn}(f; \boldsymbol{\theta})}{\partial \theta_j} \mathrm{d} f \\
+\left[\mathbf{I}(\boldsymbol{\theta})\right]_{ij} = N\int_{- 1 /2}^{1 / 2} \frac{{d}_i^*(f;  \boldsymbol{\theta}) {d}_i(f; \boldsymbol{\theta})}{P_{nn}(f; \boldsymbol{\theta})} \mathrm{d} f + \frac{N}{2} \int_{-1 / 2}^{1 / 2} \frac{\partial \ln P_{nn}(f; \boldsymbol{\theta})}{\partial \theta_i} \frac{\partial \ln P_{nn}(f; \boldsymbol{\theta})}{\partial \theta_j} \mathrm{d} f \\
 $$
 $$
 d_i(f_k; \boldsymbol{\theta}) = \frac{1}{\sqrt{N}} \cdot \operatorname{DTFT}_{k}\left\{ \frac{\partial \mathbf{u}(\boldsymbol{\theta})}{\partial \theta_i}  \right\} \\
@@ -103,7 +103,7 @@ $$
 \end{bmatrix}^T \\
 \lambda_i = P_{nn}(f_i; \boldsymbol{\theta})
 $$
-则将$\mathbf{C}(\boldsymbol{\theta})$秩1矩阵展开
+则将$\mathbf{C}(\boldsymbol{\theta})$谱展开（秩1矩阵）
 $$
 \mathbf{C}(\boldsymbol{\theta}) = \sum\limits_{k = 0}^{N - 1} \lambda_k \mathbf{v}_k \mathbf{v}_k^H
 $$
@@ -187,6 +187,195 @@ $$
 $$
 
 其中，这里的${d}_i(f; \boldsymbol{\xi})$为归一后的傅里叶变换后
+
+### 数学技巧1
+
+若要处理类似于以下形式复矩阵求实部的逆
+$$
+\begin{aligned}
+\mathbf{J} &= \operatorname{Re} \left\{ 
+\begin{bmatrix}
+\mathbf{A}^H \\ \mathbf{B}^H
+\end{bmatrix}
+\begin{bmatrix}
+\mathbf{A} & \mathbf{B}
+\end{bmatrix}
+\right\} \\
+\end{aligned}
+$$
+可以重新写为
+$$
+\begin{aligned}
+\mathbf{J} &=  \operatorname{Re} \left\{ 
+\left(
+\begin{bmatrix} 
+\bar{\mathbf{A}}^T \\ \bar{\mathbf{B}}^T
+\end{bmatrix} -
+\mathrm{j}\begin{bmatrix} 
+\tilde{\mathbf{A}}^T \\ \tilde{\mathbf{B}}^T
+\end{bmatrix}
+\right)
+\left(
+\begin{bmatrix} 
+\bar{\mathbf{A}} & \bar{\mathbf{B}} 
+\end{bmatrix} + 
+\mathrm{j}\begin{bmatrix} 
+\tilde{\mathbf{A}} & \tilde{\mathbf{B}} 
+\end{bmatrix}
+\right)
+\right\} \\
+&=  \left\{ 
+\begin{bmatrix} 
+\bar{\mathbf{A}}^T \\ \bar{\mathbf{B}}^T
+\end{bmatrix}
+\begin{bmatrix} 
+\bar{\mathbf{A}} & \bar{\mathbf{B}} 
+\end{bmatrix} + 
+\begin{bmatrix} 
+\tilde{\mathbf{A}}^T \\ \tilde{\mathbf{B}}^T
+\end{bmatrix}
+\begin{bmatrix} 
+\tilde{\mathbf{A}} & \tilde{\mathbf{B}} 
+\end{bmatrix} 
+\right\} \\
+&=  \begin{bmatrix}
+\bar{\mathbf{A}}^T & \tilde{\mathbf{A}}^T \\ 
+\bar{\mathbf{B}}^T & \tilde{\mathbf{B}}^T 
+\end{bmatrix}
+\begin{bmatrix}
+\bar{\mathbf{A}} & \bar{\mathbf{B}} \\
+\tilde{\mathbf{A}} & \tilde{\mathbf{B}} 
+\end{bmatrix} \\
+&= 
+\begin{bmatrix} 
+\hat{\mathbf{A}}^T \\ \hat{\mathbf{B}}^T
+\end{bmatrix}
+\begin{bmatrix} 
+\hat{\mathbf{A}} & \hat{\mathbf{B}} 
+\end{bmatrix}
+\end{aligned}
+$$
+
+
+其中
+$$
+\begin{bmatrix} 
+\hat{\mathbf{A}} & \hat{\mathbf{B}}
+\end{bmatrix} =
+\begin{bmatrix}
+\bar{\mathbf{A}} & \bar{\mathbf{B}} \\
+\tilde{\mathbf{A}} & \tilde{\mathbf{B}}
+\end{bmatrix}
+$$
+使用分块对角化的方法对矩阵$\mathbf{J}$求逆，首先定义一个实矩阵
+$$
+\mathbf{L} = \begin{bmatrix}
+\mathbf{I} & \mathbf{0} \\
+-\hat{\mathbf{B}}^{\dagger} \hat{\mathbf{A}} & \mathbf{I}
+\end{bmatrix}
+$$
+
+其中，$\hat{\mathbf{B}}^{\dagger}$是$\hat{\mathbf{B}}$的伪逆，根据伪逆的性质，$\mathbf{P}_{B} = \hat{\mathbf{B}} \hat{\mathbf{B}}^{\dagger}$是投影到$\hat{\mathbf{B}}$列空间的正交投影矩阵；同理，$\mathbf{P}_{B}^{\perp} = \mathbf{I}-\hat{\mathbf{B}} \hat{\mathbf{B}}^{\dagger}$是投影到$\hat{\mathbf{B}}$列空间的补空间的正交投影矩阵，由此
+$$
+\begin{aligned}
+\mathbf{L}^T \mathbf{J} \mathbf{L} &= 
+ \mathbf{L}^T
+\begin{bmatrix}
+\hat{\mathbf{A}}^T  \\ \hat{\mathbf{B}}^T 
+\end{bmatrix}
+\begin{bmatrix}
+\hat{\mathbf{A}} & \hat{\mathbf{B}}
+\end{bmatrix} \mathbf{L}  \\
+&= 
+\begin{bmatrix}
+\hat{\mathbf{A}}^T\mathbf{P}_{B}^{\perp}  \\ \hat{\mathbf{B}}^T 
+\end{bmatrix}
+\begin{bmatrix}
+\mathbf{P}_{B}^{\perp}\hat{\mathbf{A}} & \hat{\mathbf{B}}
+\end{bmatrix}  \\
+&= 
+\begin{bmatrix}
+\hat{\mathbf{A}}^T\mathbf{P}_{B}^{\perp} \hat{\mathbf{A}} & \mathbf{0}  \\
+\mathbf{0} & \hat{\mathbf{B}}^T\hat{\mathbf{B}}
+\end{bmatrix}
+ \\
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\mathbf{J}^{-1} &= \mathbf{L}\left( \mathbf{L}^T \mathbf{J} \mathbf{L} \right)^{-1} \mathbf{L}^T \\
+&=  
+\begin{bmatrix}
+\mathbf{I}  & \mathbf{0}  \\
+-\hat{\mathbf{B}}^{\dagger} \hat{\mathbf{A}} & \mathbf{I} 
+\end{bmatrix}
+\begin{bmatrix}
+\left(\hat{\mathbf{A}}^T\mathbf{P}_{B}^{\perp} \hat{\mathbf{A}} \right)^{-1}& \mathbf{0}   \\
+\mathbf{0} & x 
+\end{bmatrix}
+\begin{bmatrix}
+\mathbf{I} & -(\hat{\mathbf{B}}^{\dagger}\hat{\mathbf{A}})^T   \\
+\mathbf{0} & \mathbf{I} 
+\end{bmatrix} \\
+&= \begin{bmatrix}
+ \left(\hat{\mathbf{A}}^T\mathbf{P}_{B}^{\perp} \hat{\mathbf{A}} \right)^{-1}& x  \\
+x & x
+\end{bmatrix}
+\end{aligned}
+$$
+
+同理将$\mathbf{A}$和$\mathbf{B}$在推导的时候交换顺序，可以得到$\mathbf{J}^{-1}$右下角的矩阵为$\left(\hat{\mathbf{B}}^T\mathbf{P}_{A}^{\perp} \hat{\mathbf{B}} \right)^{-1}$。
+
+综上所述
+$$
+\begin{aligned}
+\mathbf{J}^{-1} 
+&= \begin{bmatrix}
+ \left(\hat{\mathbf{A}}^T\mathbf{P}_{B}^{\perp} \hat{\mathbf{A}} \right)^{-1}& x  \\
+x & \left(\hat{\mathbf{B}}^T\mathbf{P}_{A}^{\perp} \hat{\mathbf{B}} \right)^{-1}
+\end{bmatrix}
+\end{aligned}
+$$
+
+### 数学技巧2
+
+如果现在拥有类似于以下形式的矩阵，但是需要进行烦人的取复矩阵的实部操作
+$$
+\mathbf{J} = \operatorname{Re}\left( \mathbf{D}^H \mathbf{M} \mathbf{D} \right)
+$$
+可以证明，上式的实矩阵可以重新写为
+$$
+\begin{aligned}
+\mathbf{J} &= \begin{bmatrix}
+\bar{\mathbf{D}}^T &
+\tilde{\mathbf{D}}^T
+\end{bmatrix}
+
+\begin{bmatrix}
+\bar{\mathbf{M}} & -\tilde{\mathbf{M}} \\
+\tilde{\mathbf{M}} & \bar{\mathbf{M}}
+\end{bmatrix}
+
+\begin{bmatrix}
+\bar{\mathbf{D}} \\
+\tilde{\mathbf{D}}
+\end{bmatrix} \\
+&= \hat{\mathbf{D}}^T \begin{bmatrix}
+\bar{\mathbf{M}} & -\tilde{\mathbf{M}} \\
+\tilde{\mathbf{M}} & \bar{\mathbf{M}}
+\end{bmatrix} \hat{\mathbf{D}}
+\end{aligned}
+$$
+只需要将下式展开，最后只保留实部就可以轻松证明
+$$
+\begin{aligned}
+\mathbf{D}^H \mathbf{M} \mathbf{D} &= \left(\bar{\mathbf{D}} + \mathrm{j}\tilde{\mathbf{D}}\right)^H\left(\bar{\mathbf{M}} + \mathrm{j}\tilde{\mathbf{M}}\right) \left(\bar{\mathbf{D}} + \mathrm{j}\tilde{\mathbf{D}}\right) \\
+&= \left(\bar{\mathbf{D}}^T - \mathrm{j}\tilde{\mathbf{D}}^T\right)\left(\bar{\mathbf{M}} + \mathrm{j}\tilde{\mathbf{M}}\right) \left(\bar{\mathbf{D}} + \mathrm{j}\tilde{\mathbf{D}}\right)
+\end{aligned}
+$$
+
+这个技巧是在将Slepian–Bangs formula复数形式转换为实数形式可以使用的技巧。
 
 ### 多测量通道下的FIM
 

@@ -357,7 +357,42 @@ $$
 
 ### Forward/Backward Smoothing
 
-$\mathbf{R}_{ss}$非满秩造成的影响。
+考虑一个DOA估计的信号模型
+$$
+\begin{aligned}
+\mathbf{x}(t)
+ &= \mathbf{A} \mathbf{s}(t) + \mathbf{e}(t)
+\end{aligned}
+$$
+我们知道，任何一个基于子空间的方法都是使用矩阵分解的工具从数据中还原出导向矩阵$\mathbf{A}$的列空间（例如对相关矩阵做特征值分解或数据做奇异值分解），并称其为信号空间，能够通过矩阵分解的方式得到信号空间的估计的原理为：在白噪声的假设下且信源相关$\mathbf{R}_{ss}$非奇异的情况下，相关矩阵$\mathbf{R}_{xx} = \mathbf{A} \mathbf{R}_{ss} \mathbf{A}^H + \sigma^2 \mathbf{I}$的列空间与$\mathbf{A}$的列空间相同。
+
+然而，在信源相关矩阵奇异的情况下，上述结论就会失效。不失一般性，假设$K$个信源中的第一个信源可被剩下信源线性表示，即
+$$
+s_1(t) = \sum\limits_{k = 2}^K c_k s_k(t)
+$$
+由此我们可以重新改写信号模型为
+$$
+\begin{aligned}
+\mathbf{x}(t) &= \sum\limits_{k = 1}^K \mathbf{a}(\theta_k) s_k(t) + \mathbf{e}(t) \\
+&= \mathbf{a}(\theta_1)\sum\limits_{k = 2}^K c_k s_k(t) + \sum\limits_{k = 2}^K \mathbf{a}(\theta_k) s_k(t) + \mathbf{e}(t) \\
+&= \sum\limits_{k = 2}^K \left[c_k \mathbf{a}(\theta_1) +  \mathbf{a}(\theta_k) \right] s_k(t) + \mathbf{e}(t) \\
+&= \mathbf{A}' \mathbf{s}'(t) + \mathbf{e}(t)
+\end{aligned}
+$$
+其中
+$$
+\mathbf{A}' = \begin{bmatrix}
+\mathbf{a}(\theta_2) & \cdots & \mathbf{a}(\theta_K)
+\end{bmatrix} + \begin{bmatrix}
+c_2 \mathbf{a}(\theta_1) & \cdots & c_K\mathbf{a}(\theta_1)
+\end{bmatrix} \\
+\mathbf{s}'(t) = \begin{bmatrix}
+s_2(t) & \cdots & s_K(t)
+\end{bmatrix}^T
+$$
+由此可以看到，在相关信源存在的情况下，如果我们继续使用这样的数据进行信号空间的估计，我们得到的结果将不在是$\mathbf{A}$的列空间，而是$\mathbf{A}'$的列空间。对于有$c_k$为零，那么此时对应信源DOA的信号子空间能够不被侵扰，而在后续的处理中正确估计出，而其余剩下不为零的$c_k$对应信源的DOA就无法被正确估计。
+
+综上所述，相关信源直接导致了从相关矩阵估计出信号空间的失效，从而导致后续的处理失败。
 
 
 
