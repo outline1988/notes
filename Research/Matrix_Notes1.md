@@ -22,6 +22,7 @@ $$
 A^{\dagger} \boldsymbol{b} = \boldsymbol{x}_r
 $$
 
+最小二乘解的概念很简单，将$\boldsymbol{b}$投影到$A$的列空间中，由此方程有解。在$A$列满秩的情况下是唯一解，但是若$A$不是列满秩，则有无穷解，解的基本形式为$A$的某个行空间向量加上零空间的向量。由于行空间与零空间正交的特性，所以，这个行空间就是极小范数解。
 
 ### 特征值和特征向量
 
@@ -90,6 +91,8 @@ $$
 \text{product of pivots} = \text{product of eigenvalues} = \text{determinant}
 $$
 对于**对称矩阵**来说，正特征值的数量和正特征向量的数量相同，这对于正定矩阵的判断具有重要作用。
+
+
 
 #### 正定矩阵
 
@@ -162,10 +165,146 @@ $$
 &= \mathbf{A}\mathbf{x} + \mathbf{A}^T\mathbf{x}
 \end{aligned}
 $$
+
+#### 线性模型的例子（线性最小二乘）
+$$
+\begin{aligned}
+&\frac{\partial}{\partial \mathbf{x}^H} \left( \mathbf{y} - \mathbf{A} \mathbf{x} \right)^H\left( \mathbf{y} - \mathbf{A} \mathbf{x} \right) \\
+&= 2 \left( \mathbf{y} - \mathbf{A}\mathbf{x} \right)^H \left(-\mathbf{A}\right) = 0
+\end{aligned}
+$$
+#### 线性模型的例子2（多观测矩阵的线性最小二乘）
+$$
+\begin{aligned}
+&\frac{\partial}{\partial \mathbf{x}^H} \left[\sum\limits_{i = 1}^{N} \left( \mathbf{y}_i - \mathbf{A}_i \mathbf{x} \right)^H\left( \mathbf{y}_i - \mathbf{A}_i \mathbf{x} \right)\right] \\
+&=  \sum\limits_{i = 1}^{N} \left[ \frac{\partial}{\partial \mathbf{x}^H}\left( \mathbf{y}_i - \mathbf{A}_i \mathbf{x} \right)^H\left( \mathbf{y}_i - \mathbf{A}_i \mathbf{x} \right)\right] \\
+&= \sum\limits_{i = 1}^{N} \left[2 \left( \mathbf{y}_i - \mathbf{A}_i\mathbf{x} \right)^H \left(-\mathbf{A}_i\right) \right] = 0
+\end{aligned}
+$$
+
+为了方便记忆，其等效为以下步骤
+$$
+\begin{aligned}
+ \mathbf{y}_i &= \mathbf{A}_i \mathbf{x} \\
+\rightarrow  \mathbf{A}_i^H\mathbf{y}_i &= \mathbf{A}_i^H\mathbf{A}_i \mathbf{x}  \\
+\rightarrow \sum\limits_{i = 1}^N \mathbf{A}_i^H\mathbf{y}_i &=\sum\limits_{i = 1}^N\mathbf{A}_i^H\mathbf{A}_i \mathbf{x}
+\end{aligned}
+$$
+*如何去理解呢？原来的投影思维在这里用不上。*
+
+论文：Maximum likelihood angle estimation for signals with known waveforms
+
+#### 最小二乘目标函数的梯度向量和Hessian矩阵
+
+最小二乘目标函数为
+$$
+f(x) = \mathbf{r}^T \mathbf{r}
+$$
+其中$\mathbf{r}(\mathbf{x}) \in \mathbb{R}^{m \times 1}$为由$\mathbf{x} \in \mathbb{R}^{n \times 1}$决定的列向量，可以根据链式法则求其梯度和Hessian矩阵
+$$
+\begin{aligned}
+\frac{\partial f(\mathbf{x})}{\partial \mathbf{x}^T} &= \frac{\partial \mathbf{r}^T \mathbf{r}}{\partial \mathbf{x}^T} \\
+&= \frac{\partial \mathbf{r}^T \mathbf{r}}{\partial \mathbf{r}^T} \frac{\partial \mathbf{r}}{\mathbf{x}^T} \\
+&= 2 \mathbf{r}^T \mathbf{J}(\mathbf{x})
+\end{aligned}
+$$
+其中，$\mathbf{J}(\mathbf{x})$为向量$\mathbf{r}(\mathbf{x})$的Jacobian矩阵，定义为
+$$
+\mathbf{J}(\mathbf{x}) = \frac{\partial \mathbf{r}(\mathbf{x})}{ \partial \mathbf{x}^T} = \begin{bmatrix}
+\frac{\partial r_1(\mathbf{x})}{\partial \mathbf{x}^T} \\
+\vdots \\
+\frac{\partial r_m(\mathbf{x})}{\partial \mathbf{x}^T}
+\end{bmatrix} = \begin{bmatrix}
+\nabla r_1^T \\
+\vdots \\
+\nabla r_m^T
+\end{bmatrix}
+$$
+由此，$f(\mathbf{x})$的梯度为
+$$
+\nabla f(\mathbf{x}) = 2\mathbf{J}^T(\mathbf{x}) \mathbf{r}(\mathbf{x}) = 2\sum\limits_{i = 1}^{m} r_i(\mathbf{x}) \nabla r_i(\mathbf{x})
+$$
+继续求其Hessian矩阵（二阶导）
+$$
+\begin{aligned}
+\nabla ^2 f(\mathbf{x}) &= \frac{\partial }{\partial \mathbf{x}^T} \nabla f(\mathbf{x}) \\
+&= 2\sum\limits_{i = 1}^{m}\frac{\partial r_i(\mathbf{x}) \nabla r_i(\mathbf{x})}{\partial \mathbf{x}^T} 
+\end{aligned}
+$$
+其中
+$$
+\begin{aligned}
+\frac{\partial r_i(\mathbf{x}) \nabla r_i(\mathbf{x})}{\partial \mathbf{x}^T}  &= \frac{\partial r_i \nabla r_i}{\partial r_i} \frac{\partial r_i}{ \mathbf{x}^T} + \frac{\partial r_i \nabla r_i}{\partial (\nabla r_i)^T} \frac{\partial (\nabla r_i)}{ \mathbf{x}^T} \\
+&= \nabla r_i (\nabla r_i)^T + r_i \nabla^2 r_i
+\end{aligned}
+$$
+最终
+$$
+\begin{aligned}
+\nabla ^2 f(\mathbf{x}) &= 2\sum\limits_{i = 1}^{m}\nabla r_i (\nabla r_i)^T + 2\sum\limits_{i = 1}^{m}  r_i \nabla^2 r_i \\
+&= 2 \begin{bmatrix}
+\nabla r_1 & \cdots & \nabla r_m
+\end{bmatrix} \begin{bmatrix}
+\nabla r_1^T \\
+\vdots \\
+\nabla r_m^T
+\end{bmatrix} + 2\sum\limits_{i = 1}^{m}  r_i \nabla^2 r_i \\
+&= \mathbf{J}^T(\mathbf{x}) \mathbf{J}(\mathbf{x}) + 2\sum\limits_{i = 1}^{m}  r_i \nabla^2 r_i
+\end{aligned}
+$$
+#### 实标量函数中间变量是复数
+
+仍旧是最小二乘目标函数，只不过现在residual向量$\mathbf{r}(\mathbf{x}) \in \mathbb{C}^{m \times 1}$是复数，变量$\mathbf{x} \in \mathbb{R}^{n \times 1}$仍然还是复数
+$$
+f(\mathbf{x}) = \mathbf{r}^H(\mathbf{x})\mathbf{r}(\mathbf{x})
+$$
+可以将其视为两个不同向量$\mathbf{u}_1 = \mathbf{r}^*$和$\mathbf{u}_2 = \mathbf{r}$的内积，然后使用向量链式法则求导
+$$
+\begin{aligned}
+\frac{\partial f(\mathbf{x})}{ \partial \mathbf{x}^T} & = \frac{\partial \mathbf{u}_1^T \mathbf{u}_2}{ \partial \mathbf{x}^T} \\
+&= \frac{\partial \mathbf{u}_1^T \mathbf{u}_2}{ \partial \mathbf{u}_1^T} \frac{\partial \mathbf{u}_1}{ \partial \mathbf{x}^T} + \frac{\partial \mathbf{u}_1^T \mathbf{u}_2}{ \partial \mathbf{u}_2^T} \frac{\partial \mathbf{u}_2}{ \partial \mathbf{x}^T} \\
+&= \mathbf{u}_2^T \frac{\partial \mathbf{r}^*}{ \partial \mathbf{x}^T} + \mathbf{u}_1^T \frac{\partial \mathbf{r}}{ \partial \mathbf{x}^T} \\
+&= \mathbf{r}^T \mathbf{J}^* + \mathbf{r}^H \mathbf{J} \\
+&= 2 \operatorname{Re}(\mathbf{r}^T \mathbf{J}^*)
+\end{aligned}
+$$
+由此
+$$
+\nabla f(\mathbf{x}) = 2 \operatorname{Re}(\mathbf{J}^H \mathbf{r})
+$$
+
+经过类似的推导，可以得到复数版本的Hessian矩阵为
+
+$$
+\nabla^2 f(\mathbf{x}) = 2 \operatorname{Re} \left(\mathbf{J}^H \mathbf{J} + \sum\limits_{i = 1}^{m} r_i \nabla^2 r_i \right)
+$$
+参考：Detection and estimation in sensor arrays using weighted subspace fitting
+
+论文中有标量参数求导的版本，形式不同。
+
+### Least Square
+
+若要求解
+$$
+\mathbf{y} = \mathbf{A} \mathbf{x}
+$$
+这个方程组，无论其是否相容，或是欠定（underdetermined）还是超定（overdetermined），都有一个最小二乘解，其等价于求解
+$$
+\mathbf{A}^H \mathbf{y} = \mathbf{A}^H \mathbf{A} \mathbf{x}
+$$
+以往仅仅将该式作为理论推导的中间步骤，即求解这个方程，就是在求解等价的最小二乘。但是，在张颢老师现代数字信号处理2中稀疏信号处理的第三讲中，介绍了该式中包含的Selection的概念。
+
+$\mathbf{A}^H \mathbf{y}$可以视为将$\mathbf{y}$依次与$\mathbf{A}$的列向量做相关；同理，$\mathbf{A}^H \mathbf{A} \mathbf{x}$就是将$\mathbf{A} \mathbf{x}$依次与$\mathbf{A}$的列向量做相关。求解这个方程希望找到严格满足做相关之后左右两边等价的$\mathbf{x}$。
+
+可以将左乘$\mathbf{A}^H$看作对原本方程的左右两边做一个预处理，而这个预处理究竟保存了什么信息，舍弃了什么信息，如何理解这样做就是最小二乘解呢（正交投影，极小范数解）？
+
+
+
 ### Total Least Square
 
 参考：The total least squares problem: computational aspects and analysis
 
+Sensor array processing based on subspace fitting 有将TLS问题转换为subspace fitting问题的过程
 #### Basic TLS
 考虑一个二维曲线拟合的问题，给定坐标点$\left\{(x_i, y_i)\right\}_{i = 1}^{N}$，我们使用线性模型来拟合这条曲线
 $$
@@ -214,7 +353,7 @@ $$
 $$
 其中，$\sigma_i$是矩阵的奇异值。
 
-从直观意义上来说，我们假设输入数据和输出数据都受到的扰动，故我们需要找到最小的扰动项，使得线性模型的关系成立，此时隐含着假设了输入数据的扰动$\Delta \mathbf{X}$和输出数据的扰动$\Delta \mathbf{y}$的数量级是相当的。
+从直观意义上来说，我们假设输入数据和输出数据都受到的扰动，故我们需要找到最小的扰动项，使得线性模型的关系成立，此时隐含着假设了输入数据的扰动$\Delta \mathbf{X}$和输出数据的扰动$\Delta\mathbf{y}$的数量级是相当的。
 
 Eckart-Young定理：给定一个秩为$n$的矩阵$\mathbf{Z}$，使得$\left\| \hat{\mathbf{Z}} - \mathbf{Z} \right\|^2_{\text{F}}$最小的秩$\hat{n}$矩阵（$\hat{n} < n$）为矩阵$\mathbf{Z}$进行奇异值展开后舍弃最小的$n - \hat{n}$个奇异值而形成的矩阵$\hat{\mathbf{Z}}$。
 
@@ -293,7 +432,7 @@ $$
 $$
 可以看到，从投影到奇异空间的角度来说，行向量投影和列向量投影是等价地，这也符合直觉，因为奇异值分解的本质就是找到了行空间和列空间的正交基。
 
-由此可以进行总结，TLS的方法本质上同LS一样都是进行降维操作，前者在于将增广矩阵$\begin{bmatrix} \mathbf{X} &  \mathbf{y} \end{bmatrix}$进行降维，而后者在于将$\mathbf{y}$降维至与$\mathbf{X}$同一列空间中。TLS更加贴近传统意义上的PCA算法，其依靠的正是SVD分解寻找行空间与列空间正交基的能力。
+由此可以进行总结，TLS的方法本质上同LS一样都是进行降维操作，前者在于将增广矩阵$\begin{bmatrix} \mathbf{X} &  \mathbf{y} \end{bmatrix}$进行降维，而后者在于将$\mathbf{y}$降维至与$\mathbf{X}$同一列空间中。TLS更加贴近传统意义上的PCA算法，其依靠的正是SVD分解寻找行空间与列空间正交基的能力。通过奇异值分解，将增广矩阵$\begin{bmatrix} \mathbf{X} &  \mathbf{y} \end{bmatrix}$的最小奇异值行空间转换为零空间，而零空间的缩放正好就是解。
 
 #### Extension TLS
 我们将TLS方法推广到更为常见的情况，模型如下
@@ -378,7 +517,8 @@ $$
 1. 解决从incompatible到compatible的问题；
 2. 在compatible问题中解决无数解的问题。
 
-对于LS来说，直接投影到观测矩阵的列空间中可以直接解决第二个问题，而第二个问题的解法是极小范数；而对于TLS来说，将所有列向量投影到增广矩阵最小奇异值的子空间在大多数情况下能够解决第一个问题，仍然在小部分情况下会失效（即最小右奇异向量的最后一个元素为零，这里不考虑失效的情况），而第二个问题的解决是与LS是一样的。
+对于LS来说，直接投影到观测矩阵的列空间中可以直接解决第一个问题，而第二个问题的解法是极小范数；而对于TLS来说，将所有列向量投影到增广矩阵最小奇异值的子空间在大多数情况下能够解决第一个问题，仍然在小部分情况下会失效（即最小右奇异向量的最后一个元素为零，这里不考虑失效的情况），而第二个问题的解决是与LS是一样的。
 
 TLS就此完结，还有很多东西没有谈到，我都不会，具体涉及了再去翻书吧。。。
 
+有空再讨论一下极小范数解。

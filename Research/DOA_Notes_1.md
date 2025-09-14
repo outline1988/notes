@@ -52,11 +52,11 @@ $$
 
 天线阵列接收到的一拍数据为一个包含$M$元素的列向量$\mathbf{x}(t)$，其中包含了关于DOA的信息，重新写为$\mathbf{x}(t; \theta_t)$（为了方便假设只有一个信源）。
 
-波束形成技术引入一个与某个方向$\theta$对应的空域滤波系数$\mathbf{w}$，或写为$\mathbf{w}(\theta)$，由此空域滤波输出为
+波束形成技术引入一个与某个方向$\theta$对应的空域滤波系数$\mathbf{w}$，或写为$\mathbf{w}(\theta)$，此时空域滤波输出为
 $$
 \mathbf{y}(t; \theta) = \mathbf{w}^{H} \mathbf{x}(t) = \mathbf{w}^{H}(\theta) \mathbf{x}(t; \theta_t)
 $$
-同样，输出功率为
+所以输出功率表示为
 $$
 \begin{aligned}
 P(\theta) &= \mathbf{E}\left[ | \mathbf{y}(t; \theta) |^2 \right] \\
@@ -82,7 +82,7 @@ s_K(t)s_1^*(t) & s_K(t)s_2^*(t) & \cdots & |s_K(t)|^2
 &=\mathbf{R}_{xx}
 \end{aligned}
 $$
-$\mathbf{R}_{xx}$中所有关于信源DOA的信息都包含在$\mathbf{A}$中。将上式拓展为估计式
+$\mathbf{R}_{xx}$中所有关于信源DOA的信息都包含在$\mathbf{A}$中。可估计协方差矩阵为
 $$
 \begin{aligned}
 \hat{\mathbf{R}}_{xx} &= \frac{1}{N}\sum\limits_{n = 1}^{N} \mathbf{x}(t_n) \mathbf{x}^{H}(t_n) \\
@@ -134,6 +134,14 @@ $$
 \end{aligned}
 $$
 CBF本质上就是使用傅里叶变换来估计数字角频率，在单源情况下，等价于最大似然估计，性能最好。
+
+### 欠采样问题与栅瓣
+
+通常来说，我们在进行DOA估计时，需要将阵元间距设置为$d = \lambda / 2$。从欠采样的角度来出发，阵列对某个方向$\theta$而产生的数字频率为$f_d = d \sin \theta / \lambda$，这个数字频率的范围可以是$(-\infty , + \infty)$，然而，从从阵列的观测数据中，受限于奈奎斯特采样定理，我们只能测出范围为$[-1/2, 1/2]$的数字频率。所以，为了使得测量的频率与真实的频率没有模糊，我们需要限制角度$\theta$从$ -\pi / 2$到$\pi / 2$变化时，产生的真实频率范围在$[-1/2, 1/2]$之内，由此选择出了$d = \lambda / 2$的阵元间距。
+
+从栅瓣的角度出发，我们从均匀加权线阵出发（最优阵列处理技术P56），我们能产生$\sin (\psi N / 2) / \sin (\psi / 2)$的波束方向图，表示需要对正视方向的信号进行加强，其中$\psi$为当前方向下，导致的阵元与阵元之间的相位差。$\psi$的变化范围可以是$(-\infty , + \infty)$，我们可以通过设置合适的阵元间隔使得$\psi$的变化范围缩小，不合理的$\psi$范围使得在可视方向包含了不知一个峰值，就说那些不是想要的峰值为栅瓣。
+
+在这里，我们需要关心能够加强信号的方向（主瓣）是否唯一，只有我们想要的正视方向，而没有其他栅瓣，所以对阵元间隔的要求比较宽松，$d = \lambda$以内都行（除了正视的时候没有栅瓣，若要加强的其他方向，都有栅瓣）。而DOA估计可以视为主瓣在所有角度范围内扫描，需要在所有扫描内产生的波束都没有栅瓣，这就需要$d = \lambda / 2$以内（所有的角度内都没有栅瓣）。
 
 ### CAPON
 
@@ -257,6 +265,23 @@ spectral-music和root-music。
 - 白噪声假设，由此才能使得信号空间在加上噪声之后仍然保持不变；
 - 信源无关假设，使得$\mathbf{A}$的列空间与$\mathbf{A} \mathbf{R}_{ss} \mathbf{A}^H$的列空间相同。
 
+#### 对于信号随机性质的讨论
+
+在求理论的协方差时，我们默认$\mathbf{s}(t)$具有平稳性质，该平稳的要求是在孔径渡越时间间隔内的相关不随时间而发生变化（注意WSS的要求是所有时间间隔的相关不随时间发生变化，所以这里相当于对WSS的要求放松了）。
+
+实际上，我们对于协方差矩阵的估计是以如下的方式进行的
+$$
+\begin{aligned}
+\hat{\mathbf{R}}_{xx} &= \frac{1}{N} \mathbf{X} \mathbf{X}^H \\
+&= \mathbf{A} \hat{\mathbf{R}}_{ss} \mathbf{A}^H + \mathbf{N}_{\text{others}}
+\end{aligned}
+$$
+其中
+$$
+\hat{\mathbf{R}}_{ss} = \frac{1}{N} \mathbf{S}\mathbf{S}^H
+$$
+可以知道，子空间类方法对于估计协方差中的$\hat{\mathbf{R}}_{ss}$的要求不苛刻，只需要要求其满秩即可。所以，在实际中，往往不需要要求信号往往不满足平稳特性，即即使信号协方差矩阵不收敛，但其只要非奇异，就能够进行子空间的估计。比如chirp信号就不是平稳信号，就是说每次对chirp信号的采样所估计的信号协方差矩阵可能都不一致（不收敛），但是其只要可逆，就都可以进行后续的估计。
+
 *有一篇论文记得看，Stoica写的。*
 
 ### ESPRIT
@@ -354,6 +379,86 @@ $$
 \hat{\mathbf{U}}_1 \mathbf{\Psi}  \approx  \hat{\mathbf{U}}_2
 $$
 这与解线性方程组具有相同的形式，可以由两种方式解这一线性方程组，一是LS方法，其假设$\hat{\mathbf{U}}_1$是准确的而将$\hat{\mathbf{U}}_2$投影到$\hat{\mathbf{U}}_1$的列空间中。其二是TLS，其假设$\hat{\mathbf{U}}_1$和$\hat{\mathbf{U}}_2$都有误差，所以解一个使得$\Delta_1$和$\Delta_2$的Frobenius范数最小的解，显然，TLS的求解方法更符合本问题。
+
+### Subspace fitting problem
+
+参考：Sensor array processing based on subspace fitting
+
+这里主要讨论两种算法，一是MD-MUSIC（多维搜索的MUSIC算法），二是DML。DML和MD-MUSIC都可以表示为一个subspace fitting问题，一个subspace fitting问题的基本形式为
+$$
+\hat{\mathbf{A}}, \hat{\mathbf{T}} = \arg \min_{\mathbf{A}, \mathbf{T}} \left\| \mathbf{M} - \mathbf{A} \mathbf{T} \right\|_F^2
+$$
+对于一个固定的$\mathbf{A}$，该表达式实际上在计算出$\mathbf{M}$和$\mathbf{A}$列空间的距离。所以，对于多个可选择的$\mathbf{A}$，该优化问题旨在挑选出离$\mathbf{M}$列空间中最近的$\mathbf{A}$。
+
+通过分离参数等技巧（SNNLS问题），可以写成
+$$
+\hat{\mathbf{A}} = \arg \max_{\mathbf{A}} \operatorname{tr}\left( \mathbf{P}_{\mathbf{A}} \mathbf{M} \mathbf{M}^H \right)
+$$
+不同的$\mathbf{M}$，对应着不同的DOA算法，比如为接收数据时$\mathbf{M} = \mathbf{Y}$，就是DML算法。同样，也可以为通过对估计协方差矩阵特征值分解得到的信号空间$\mathbf{M} = \hat{\mathbf{U}}_{\mathrm{s}}$。
+
+#### MD-MUSIC与DML的联系
+
+从subspace fitting问题的优化形式中，还原出原来的数据模型
+$$
+\mathbf{M} = \mathbf{A}\mathbf{T} + \mathbf{N}
+$$
+其中$\mathbf{N}$是噪声项，当$\mathbf{N}$是高斯白噪声时，则该数据模型的最大似然估计的优化形式就是subspace fitting问题。显然，当$\mathbf{M} = \hat{\mathbf{U}}_{\mathrm{s}}$为信号子空间时，显然对应的噪声不是高斯白噪声，但是可以通过子空间的权重，来使得MD-MUSIC与DML估计量等价
+$$
+\hat{\mathbf{A}}, \hat{\mathbf{T}} = \arg \min_{\mathbf{A}, \mathbf{T}} \left\| \hat{\mathbf{U}}_{\mathrm{s}} \tilde{\mathbf{\Lambda}} - \mathbf{A} \mathbf{T} \right\|_F^2
+$$
+当$\tilde{\mathbf{\Lambda}} = \hat{\mathbf{\Lambda}}_\mathrm{s} - \hat{\sigma}^2 \mathbf{I} = \tilde{\mathbf{\Lambda}}^{\frac{1}{2}} \tilde{\mathbf{\Lambda}}^{\frac{1}{2}}$时，DML与加权MD-MUSIC等价。其中，$\hat{\mathbf{\Lambda}}_\mathrm{s}$是$\hat{\mathbf{R}}$对应于信号子空间的特征值。其实这也很好理解，由特征值分解EVD得到的信号子空间矩阵是默认所有基的权重是相同的，而我们只需要将权重恢复，即可与DML等价，权重显然就是信号子空间的特征值。
+
+文中提到，有一个最佳的权重，能够使得MD-MUSIC在加权之后（文中叫做weighted subspace fitting，WSF），这个权重为
+$$
+\mathbf{W}_{\mathrm{opt}} = \tilde{\mathbf{\Lambda}}^2 \hat{\mathbf{\Lambda}}_\mathrm{s}^{-1} = (\hat{\mathbf{\Lambda}}_\mathrm{s} - \hat{\sigma}^2 \mathbf{I})^2 \hat{\mathbf{\Lambda}}_\mathrm{s}^{-1}
+$$
+相关的证明过程还没看，有时间可以看一下。
+
+#### Subspace fitting form of TLS-ESPRIT
+
+参考：Sensor array processing based on subspace fitting
+
+从TLS-ESPRIT的角度来说，其同样在解决一个带约束的优化问题
+$$
+\min \left\|  
+\begin{bmatrix}
+\Delta \mathbf{U}_2 \\
+\Delta \mathbf{U}_1
+\end{bmatrix}
+\right\|_F^2,  \\
+\text{s.t.} \quad ({\hat{\mathbf{U}}_1 + \Delta{\mathbf{U}}_1}) \mathbf{\Psi}  =  \hat{\mathbf{U}}_2 + \Delta{\mathbf{U}}_2
+$$
+该优化问题有现成的解析解$\mathrm{\Psi}_{\mathrm{TLS}}$。我们可以将约束代入优化目标中，从而转换为一个无约束的优化问题
+$$
+\begin{aligned}
+\hat{\mathbf{B}}, \hat{\mathbf{\Psi}} = \arg \min_{\mathbf{B}, \mathbf{\Psi}} \left\| 
+\begin{bmatrix}
+ \hat{\mathbf{U}}_2 \\
+ \hat{\mathbf{U}}_1
+\end{bmatrix} - \begin{bmatrix}
+\mathbf{B} \\
+\mathbf{B} \mathbf{\Psi}
+\end{bmatrix}
+\right\|_F^2
+\end{aligned}
+$$
+进一步的，就可以写成subspace fitting问题了
+$$
+\begin{aligned}
+& \arg \min_{\mathbf{\Gamma}, \mathbf{\Phi}, \mathbf{T}} \left\| 
+\begin{bmatrix}
+ \hat{\mathbf{U}}_2 \\
+ \hat{\mathbf{U}}_1
+\end{bmatrix} - \begin{bmatrix}
+\mathbf{\Gamma} \\
+\mathbf{\Gamma} \mathbf{\Phi}
+\end{bmatrix} \mathbf{T}
+\right\|_F^2 \\
+
+&\arg \min_{\mathbf{A}, \mathbf{T}} \left\| \mathbf{M} - \mathbf{A} \mathbf{T} \right\|_F^2
+\end{aligned}
+$$
+而该优化问题直接就有现存的解析解。
 
 ### Forward/Backward Smoothing
 
