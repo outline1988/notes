@@ -139,7 +139,7 @@ x_2[m] = x_1[Mm]
 $$
 频域上的效果是频率的重复周期（采样率）变小了，如图
 
-![image-20250825115850007](C:\Users\outline\AppData\Roaming\Typora\typora-user-images\image-20250825115850007.png)
+![image-20250825115850007](E:\Notes\Research\images\image-20250825115850007.png)
 
 所以显而易见，第一步的LPF是为了放置混叠。
 
@@ -154,7 +154,7 @@ x_1[\frac{m}{L}], & m = mN \\
 $$
 此时，$x_2'[m]$的频谱为
 
-![image-20250825153632554](C:\Users\outline\AppData\Roaming\Typora\typora-user-images\image-20250825153632554.png)
+![image-20250825153632554](E:\Notes\Research\images\image-20250825153632554.png)
 
 最后再经过一个LPF。在实际中，这个LPF是直接通过DFT后置零的方式进行滤波的，等价地操作就是$x_1[m]$的DFT在高频补零。
 

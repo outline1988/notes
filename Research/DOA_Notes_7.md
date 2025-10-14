@@ -37,7 +37,7 @@ $$
 
 $\mathbf{d}_{k}^H \mathbf{d}_{p}$可以理解为，将序列$\{ m \}_{m = 0}^{M - 1}$投影到某个傅里叶基$\exp[\mathrm{j} (\phi_{p} - \phi_{k})(m - 1)]$中，所以在不同$\Delta \phi$的情况下（不同角度差），投影的情况为（横坐标为$\pi$）
 
-![image-20251001183731839](C:\Users\outline\AppData\Roaming\Typora\typora-user-images\image-20251001183731839.png)
+![image-20251001183731839](E:\Notes\Research\images\image-20251001183731839.png)
 
 
 由式可知，FIM的对角线元素仍然保持不变，而最终的CRB则受到非对角线元素的影响。而非对角线元素主要由两个因素决定：一是DOA真值的角度差，角度差越小，信源离得越近，则对角线元素中的$\mathbf{d}_{k}^H \mathbf{d}_{p}$就越大；其二是信源波形的影响，$\sum\limits_{t=1}^{N} s_{k}^*(t)s_{p}(t)$是信源协方差矩阵的某一元素$\hat{\mathbf{P}}_{{k, p}}$，所以信源之间相关性越大，该项就越大。 

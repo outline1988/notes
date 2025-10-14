@@ -4,7 +4,7 @@
 
 对于任意矩阵$A \in \mathbb{R}^{m \times n}$，以变换的角度来看待，其都为一个其**行空间到列空间的线性变换**，其中**行空间**为矩阵$A$所有行向量所张成的$n$维空间下的$r$维子空间，同理，**列空间**为矩阵$A$所有列向量所张成的$m$维空间下的$r$维子空间。注意转换前后的空间所处的总空间不同（$n$维和$m$维空间），但是子空间维度是相同的，并且行子空间与列子空间是一一对应的。举例来说，对于一个$A \in \mathbb{R}^{3 \times 2}$的矩阵，其表示的线性变换为一个整个2维的行空间到一个3维空间中的一个$2$维子空间（平面）的一一映射。
 
-![image-20240513202550561](C:\Users\outline\AppData\Roaming\Typora\typora-user-images\image-20240513202550561.png)
+![image-20240513202550561](E:\Notes\Research\images\image-20240513202550561.png)
 
 对于$A \boldsymbol{x} = \boldsymbol{b}$来说，任意$\boldsymbol{x}$张成整个$n$维空间，而此时$\boldsymbol{b}$只张成$m$维空间的$r$维列空间。对于$\boldsymbol{x}$的整个$n$维空间来说，仅有一小部分的$r$维行空间与列空间是一一对应的，与之正交的剩余子空间为零空间，即任意$\boldsymbol{x} = \boldsymbol{x}_r + \boldsymbol{x}_n$，且$\boldsymbol{x}_r \perp \boldsymbol{x}_n$，满足
 $$

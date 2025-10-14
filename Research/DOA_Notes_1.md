@@ -11,7 +11,7 @@ $$
 其中，$\psi$和$\theta$分别为外部源位置的方位角（azimuth）和俯仰角（elevation），假设电磁波的方向为电磁波的位置到原点的方向，则电磁波的方向与外部源的位置方向刚好相反，所以在$\mathbf{a}$中需要加上负号。
 
 
-![image-20250915143106392](C:\Users\outline\AppData\Roaming\Typora\typora-user-images\image-20250915143106392.png)
+![image-20250915143106392](E:\Notes\Research\images\image-20250915143106392.png)
 
 将坐标原点所接收到的信号作为参考$f(t)$，则不同的阵元所接收到的信号是$f(t)$的延迟，即
 $$
@@ -44,7 +44,7 @@ $$
 $$
 现在将上述的三维情况特殊到平面ULA的情况，示意图如下
 
-![image-20250915154523234](C:\Users\outline\AppData\Roaming\Typora\typora-user-images\image-20250915154523234.png)
+![image-20250915154523234](E:\Notes\Research\images\image-20250915154523234.png)
 
 如图所示，阵元坐标为$\mathbf{p}_{m} = [0, (m - 1)d]^T$，来波方向为$\mathbf{a} = [-\cos \theta, -\sin \theta]^T$，故
 
@@ -311,7 +311,7 @@ $$
 
 如果干扰信号与目标信号方向重合，即$\mathbf{e} = \mathbf{i}$，则$|c_1 \mathbf{e}^H \mathbf{i} - M c_2^*|^2 = 1$，代表着对干扰信号没有能量的衰减。
 
-![image-20241028154353906](C:\Users\outline\AppData\Roaming\Typora\typora-user-images\image-20241028154353906.png)
+![image-20241028154353906](E:\Notes\Research\images\image-20241028154353906.png)
 
 如图表示当目标信号位于$90 \degree$时，干扰信号的方向与能量衰减之间的关系。可以看到，当干扰信号与目标信号的干扰重合时，是不会对干扰信号造成任何衰减的。
 
@@ -580,6 +580,5 @@ $$
 由此可以看到，在相关信源存在的情况下，如果我们继续使用这样的数据进行信号空间的估计，我们得到的结果将不在是$\mathbf{A}$的列空间，而是$\mathbf{A}'$的列空间。对于有$c_k$为零，那么此时对应信源DOA的信号子空间能够不被侵扰，而在后续的处理中正确估计出，而其余剩下不为零的$c_k$对应信源的DOA就无法被正确估计。
 
 综上所述，相关信源直接导致了从相关矩阵估计出信号空间的失效，从而导致后续的处理失败。
-
 
 
