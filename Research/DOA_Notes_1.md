@@ -1,5 +1,87 @@
 ### Data Model
 
+#### Geometry
+
+如下图所示，在三维笛卡尔坐标系中，假设有$M$个阵元接收来自外部的平面波，假设每个阵元的位置为$\mathbf{p}_{m}$，且外部平面的方向为
+$$
+\mathbf{a} = \begin{bmatrix}
+-\sin \psi \cos \theta & -\sin \psi \cos \theta & -\cos \psi
+\end{bmatrix}^T
+$$
+其中，$\psi$和$\theta$分别为外部源位置的方位角（azimuth）和俯仰角（elevation），假设电磁波的方向为电磁波的位置到原点的方向，则电磁波的方向与外部源的位置方向刚好相反，所以在$\mathbf{a}$中需要加上负号。
+
+
+![image-20250915143106392](C:\Users\outline\AppData\Roaming\Typora\typora-user-images\image-20250915143106392.png)
+
+将坐标原点所接收到的信号作为参考$f(t)$，则不同的阵元所接收到的信号是$f(t)$的延迟，即
+$$
+\mathbf{f}(t) = \begin{bmatrix}
+f(t - \tau_{1}) \\
+f(t - \tau_{2}) \\
+\vdots  \\
+f(t - \tau_{M})
+\end{bmatrix}
+$$
+注意，在如图的场景中，阵元唯一第一象限，每个坐标都是正数，则阵元所接收到的信号要比原点所接收到的信号更早。越早接收到信号，则相位越靠前，越迟接收到信号，则相位越滞后。所以阵元所接收到信号的相位要比原点相位更靠前，所以这里的$\tau_{m}$因该为负数。将$\mathbf{f}(t)$做傅里叶变换
+$$
+\mathbf{F}(w) = F(w) \begin{bmatrix}
+\exp(-\mathrm{j}w \tau_{1}) \\
+\vdots \\
+\exp(-\mathrm{j}w \tau_{M})
+\end{bmatrix}
+$$
+其中
+$$
+w\tau_{m} = w  \frac{\mathbf{a}^T \mathbf{p}_{m}}{c} = \frac{2\pi}{\lambda} \mathbf{a}^T \mathbf{p}_{m} = \mathbf{k}^T \mathbf{p}_{m}
+$$
+定义$\mathbf{k} = \frac{2\pi}{\lambda} \mathbf{a}$，其物理意义可以理解为某频率下，某方向下单位距离可以引起的相位变化。所以
+$$
+\mathbf{F}(w) = F(w) \begin{bmatrix}
+\exp(-\mathrm{j} \mathbf{k}^T \mathbf{p}_{1}) \\
+\vdots \\
+\exp(-\mathrm{j} \mathbf{k}^T \mathbf{p}_{M})
+\end{bmatrix} = F(w) \mathbf{v}(k)
+$$
+现在将上述的三维情况特殊到平面ULA的情况，示意图如下
+
+![image-20250915154523234](C:\Users\outline\AppData\Roaming\Typora\typora-user-images\image-20250915154523234.png)
+
+如图所示，阵元坐标为$\mathbf{p}_{m} = [0, (m - 1)d]^T$，来波方向为$\mathbf{a} = [-\cos \theta, -\sin \theta]^T$，故
+
+$$
+\mathbf{k}^T\mathbf{p}_{m} = \frac{2\pi}{\lambda}\begin{bmatrix}
+-\cos \theta & -\sin \theta
+\end{bmatrix}
+\begin{bmatrix}
+0 \\
+(m-1)d
+\end{bmatrix} = -2\pi\frac{d\sin \theta}{\lambda}(m - 1)
+$$
+由此，ULA的导向矢量变为
+$$
+\mathbf{a}(\boldsymbol{\theta}) = \mathbf{v}(\mathbf{k}) = \begin{bmatrix}
+1  & \cdots  & \exp\left( \mathrm{j} 2\pi \frac{d \sin \theta}{\lambda} (m - 1) \right)
+\end{bmatrix}^T
+$$
+
+从图中也可以看出，越往右边的阵元，越早接收到信号，所以相位就与靠前，若以最左边的阵元作为参考，则右边的阵元接收到的信号是左边信号相位的增加。
+
+#### Wavenumber
+
+对于一个一维的平面波信号
+$$
+s(x, t) = \exp\left[(\mathrm{j} (wt - kx)\right]
+$$
+其是关于时间和位置的函数，具体表示一个平面波在往$x$轴的正方向传播。观察其相位项，可以发现，当位置不动时，随着时间的变大，相位不断变化；其二，当时间固定时，随着距离的变远，相位变小。可知，越早接收到信号位置的相位会越大，越迟受到信号的相位就越小。由于随着$x$的增大，相位在不断减小，所以电磁波是往$x$轴的正方向传播的。传播的速度可以让相位不动来确定，也即$\frac{x}{t}=\frac{w}{k}$，若$k = \frac{2\pi}{\lambda}$，则此时电磁波的传播速度就是$c$。
+
+对于一个三维平面波
+$$
+s(\mathbf{x}, t) = \exp(\mathrm{j}(wt - \mathbf{k}^T\mathbf{x}))
+$$
+其中，$\mathbf{k}$为波数（wavenumber），是一个矢量，其数值大小代表某方向的相位空间变化率。比如$\mathbf{k}^T\mathbf{x}$就代表着如果朝着$\mathbf{x}$的方向，相位的变化率是怎样的。所以上式就代表着三维空间中某一方向的平面波的传播。当$\mathbf{x}$朝着$\mathbf{k}$的方向变大时，就越迟受到该信号，所以相位就越滞后；反之，当$\mathbf{x}$朝着$\mathbf{k}$的反方向变化时，就越早收到信号，相位就越大。
+
+#### Data model
+
 阵列信号处理中，均匀线阵的信号基本数据模型为（单信号源）
 $$
 \mathbf{x}(t) = \mathbf{a}(\theta_t) s(t) + \mathbf{e}(t)
@@ -54,12 +136,12 @@ $$
 
 波束形成技术引入一个与某个方向$\theta$对应的空域滤波系数$\mathbf{w}$，或写为$\mathbf{w}(\theta)$，此时空域滤波输出为
 $$
-\mathbf{y}(t; \theta) = \mathbf{w}^{H} \mathbf{x}(t) = \mathbf{w}^{H}(\theta) \mathbf{x}(t; \theta_t)
+{y}(t; \theta) = \mathbf{w}^{H} \mathbf{x}(t) = \mathbf{w}^{H}(\theta) \mathbf{x}(t; \theta_t)
 $$
 所以输出功率表示为
 $$
 \begin{aligned}
-P(\theta) &= \mathbf{E}\left[ | \mathbf{y}(t; \theta) |^2 \right] \\
+P(\theta) &= \mathbf{E}\left[ | {y}(t; \theta) |^2 \right] \\
 &= \mathbf{w}(\theta)^{H} \mathbf{E}\left[ \mathbf{x}(t; \theta_t) \mathbf{x}^{H}(t; \theta_t) \right] \mathbf{w}(\theta) \\
 &= \mathbf{w}(\theta)^{H} \mathbf{R}_{xx}(\theta_t) \mathbf{w}(\theta) \\
 &= \mathbf{w}^{H} \mathbf{R}_{xx} \mathbf{w} \\

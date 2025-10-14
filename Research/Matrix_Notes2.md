@@ -111,3 +111,16 @@ $$
 \| A \|_F^2 = \langle A, A \rangle = \sum\limits_{i, j}a_{ij}a_{ij}^* = \operatorname{tr}(A A^H)
 $$
 
+$$
+\mathbf{y}(t) = \begin{bmatrix}
+y_{1}(t)  \\
+y_{2}(t) \\
+\vdots \\
+y_{M}(t) \\
+\end{bmatrix} = \begin{bmatrix}
+1 \\
+e^{\mathrm{j}2\phi} \\
+\vdots \\
+e^{\mathrm{j}(M-1)\phi}
+\end{bmatrix} s(t)
+$$

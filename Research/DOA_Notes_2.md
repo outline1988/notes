@@ -39,6 +39,8 @@ $$
 
 由于非线性的影响，目标函数具有复杂的多峰形状（非凸）。在实际的操作中，我们以各种各样的方式多维搜索$\boldsymbol\theta$（比如网格搜索），来使得对应的目标函数进行最优化。
 
+
+
 #### 从单快拍推广到多快拍
 
 确定性模型单快拍接收数据为
@@ -58,6 +60,14 @@ $$
 J = \sum\limits_{t = 1}^{N} [\mathbf{x}(t) - \mathbf{A} \mathbf{s}(t)]^H [\mathbf{x}(t) - \mathbf{A} \mathbf{s}(t)]
 $$
 有关于DML的性能分析，可以参考文章：Maximum likelihood methods for direction-of-arrival estimation
+
+$$
+\min_{\boldsymbol{\theta}} \| \mathbf{Y}-\mathbf{A}(\boldsymbol{\theta}) \mathbf{S} \|_{{F}}^2
+$$
+
+#### 充分统计量
+
+
 
 ### Stochastic Maximum Likelihood
 
@@ -82,6 +92,9 @@ $$
 $$
 J =  \ln \det(\mathbf{R}) +  \operatorname{tr}\left(\hat{\mathbf{R}} \mathbf{R}^{-1}\right)
 $$
+
+#### 充分统计量
+
 
 
 ### Expectation-Maximization
@@ -253,7 +266,9 @@ $$
 
 
 
+$$
 
+$$
 
 
 

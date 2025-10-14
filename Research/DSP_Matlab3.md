@@ -291,3 +291,60 @@ x_n_tau_dopler = exp(1j * phi) * (x_n_tau .* exp(1j * w_d * n_'));
 注意代码编写基于原始时域范围为$[0 : N - 1]$，也可基于$[-N / 2 : N / 2 - 1]$进行代码编写，最后的结果都是一样的，因为都是低频补零的结果。
 
 这里给出一个方便的记忆，在频域范围$[0 : N - 1]$的非整数相移，就是这个范围的末尾补零，而此时就是低频补零；在频域范围$[-N / 2 : N / 2 - 1]$进行非整数相移，就是这个范围的末尾补零，此时对应高频补零。
+
+
+### 带通采样的时移生成
+
+前面讨论的非整数平移相当于插值后再延迟，针对由低通采样过程而来的离散序列是正确的。但对于带通采样得到的离散序列，情况有所不同。本节首先分别介绍需要带通采样的连续信号$s(t)$及其延迟$s(t-\tau)$在分别使用带通采样后得到的频谱特性（从连续谱，到DTFT谱，再到DFT谱），分析这两个信号DFT的异同，进而推导出如何通过$s(t)$的下混频离散序列$s'[n]$得到时延版本$s(t-\tau)$的下混频离散序列$s_{\tau}'[n]$。
+
+对于一个带限信号$s(t)$，其频域形式为
+$$
+S(f) \neq 0, \;\; f \in [f_{L}, f_{H}]
+$$
+$S(f)$只在$[f_{L}, f_{H}]$的范围内不为0，其带宽$B = f_{H} - f_{L}$。同时有$\frac{f_{L} + f_{H}}{2} > B$，若用采样率$f_{s}=B$对$s(t)$进行采样，则该采样过程为带通采样。
+
+由于时域采样等效于频域的周期重复，采样后再经过下变频后，我们可以得到一个离散序列$s'[n]$，其频域为$S'(f)$（实际为$s'[n]$的DTFT，同时为了方便，转换了坐标轴）
+$$
+S'(f) \neq 0, \;\; f \in \left[ -\frac{B}{2}, \frac{B}{2} \right]
+$$
+显然，$S'(f)$是$S(f)$向左的平移（由于假设带限信号，所以没有混叠）
+$$
+S'(f) = S(f + f_{\text{shift}}) , \;\; f \in \left[ -\frac{B}{2}, \frac{B}{2} \right] , \;\;
+
+f_{\text{shift}} = \frac{f_{L}+f_{H}}{2}
+$$
+DFT得到的离散频谱等价于对$S'(f)$的等间隔采样后（采样间隔为$B / N$）
+$$
+S'[k] = S'\left( f_{k} \right) = S'\left( k \frac{B}{N} \right), \;\; k = -\frac{N}{2}, \cdots, \frac{N}{2} - 1
+$$
+
+另一方面，考虑$s(t)$的时移版本$s(t-\tau)$，则其频域为
+$$
+S_{\tau}(f) = S(f) \exp(-\mathrm{j}2\pi f\tau) \neq 0, \;\; f \in [f_{L}, f_{H}]
+$$
+同样，对其采样为带通采样过程，得到的离散序列再经过下变频后得到$s_{\tau}'[n]$，其频域仍然是原来频域的向左平移
+$$
+\begin{aligned}
+S_{\tau}'(f) &= S(f + f_{\text{shift}}) \exp(-\mathrm{j}2\pi(f+f_{\text{shift}})\tau) \\
+&= S'(f) \exp(-\mathrm{j}2\pi(f+f_{\text{shift}})\tau) , \;\; f \in \left[ -\frac{B}{2}, \frac{B}{2} \right]
+\end{aligned}
+$$
+可以看到，离散序列$s_{\tau}'[n]$的频谱相比于$s'[n]$的频谱，只多加了一项相位项，注意该相位项内的频率为$f+f_{\text{shift}}$，需要还原为原先的频率支撑中。所以经过DFT对$S'_{\tau}(f)$的等间隔采样后，得到
+$$
+\begin{aligned}
+S_{\tau}'[k] &= S_{\tau}'(f_{k}) = S'_{{\tau}}\left( k \frac{B}{N} \right) \\
+&= S'\left( k \frac{B}{N} \right) \exp\left( -\mathrm{j}2\pi\left( k \frac{B}{N} + f_{\text{conv}} \right) \tau \right) \\
+&= S'\left( k \frac{B}{N} \right) \exp\left( -\mathrm{j}2\pi \left( f_{L} + B\left( \frac{1}{2} + \frac{k}{N} \right) \right) \tau \right),  \;\; k = -\frac{N}{2}, \cdots, \frac{N}{2} - 1
+\end{aligned}
+$$
+可以看到，带通采样得到时移版本的离散序列，就是将原本离散序列DFT的每个频点，都乘上对应真实频率的时延相位项。
+
+相比于低通采样产生的时延（没有$f_{\text{shift}}$）
+$$
+S_{{\tau}}''[k] = S'\left( k \frac{B}{N} \right) \exp\left( -\mathrm{j} 2 \pi B\left(\frac{k}{N} \right) \tau \right) = S'\left( k \frac{B}{N} \right) \exp\left( -\mathrm{j} 2 \pi \left(\frac{k}{N} \right) \tau' \right), \;\; \tau'=B\tau
+$$
+其在频域上少了$\exp\left( -\mathrm{j}2\pi \frac{f_{L} + f_{H}}{2}\tau \right)$这一项，该项与$k$无关，所以在时域上也是这一相位项
+$$
+s'_{\tau}[n] = s''_{\tau}[n] \exp\left( -\mathrm{j}2\pi \frac{f_{L} + f_{H}}{2}\tau \right)
+$$
+

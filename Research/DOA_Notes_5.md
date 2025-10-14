@@ -19,7 +19,7 @@ $$
 其中
 
 $$
-\begin{aligned} \hat{\mathbf{R}} &= \mathbf{X}\mathbf{X}^H \\ &= \begin{bmatrix} \mathbf{x}_1^T \mathbf{x}_1^* & \cdots & \mathbf{x}_1^T \mathbf{x}_M^* \\ \vdots & & \vdots \\ \mathbf{x}_M^T \mathbf{x}_1^* & \cdots & \mathbf{x}_M^T \mathbf{x}_M^* \\ \end{bmatrix} \end{aligned}  
+\begin{aligned} \hat{\mathbf{R}} &= \mathbf{X}\mathbf{X}^H \\ &= \begin{bmatrix} \mathbf{x}_1^T \mathbf{x}_1^* & \cdots & \mathbf{x}_1^T \mathbf{x}_M^* \\  \mathbf{x}_2^T \mathbf{x}_1^* & \cdots & \mathbf{x}_2^T \mathbf{x}_M^* \\ \vdots & & \vdots \\ \mathbf{x}_M^T \mathbf{x}_1^* & \cdots & \mathbf{x}_M^T \mathbf{x}_M^* \\ \end{bmatrix} \end{aligned}  
 $$
 
   
@@ -74,7 +74,11 @@ $$
 \begin{aligned} \mathbf{a}^T_i(\boldsymbol{\theta}) \mathbf{S} \mathbf{S}^H \mathbf{a}^*_j(\boldsymbol{\theta}) &= \sum\limits_{k, l}^{K} a_i(\theta_k) a_j^* (\theta_l) \mathbf{s}^T_k \mathbf{s}_l^* \end{aligned}  
 $$
 
-  
+$$
+[ \hat{\mathbf{R}} ]_{ij} = \mathbf{y}^T_{i}\mathbf{y}_{j}^*  
+
+$$
+
 
 也即，估计协方差矩阵的某一个元素$[ \hat{\mathbf{R}} ]_{ij}$的无随机项，是K个不同信号在N个快拍的相关在不同权重下的加权和。
 
@@ -264,7 +268,6 @@ $$
 
 1. 使用EXIP的思想，先最大似然估计得到估计协方差$\hat{\mathbf{R}}$，再将其作为量测进行最大似然估计，类似于分布估计的思路；
 2. 分布估计的第二步，即将$\hat{\mathbf{R}}$作为量测时的最大似然估计的权重，使用$\hat{\mathbf{R}}$来进行固定（本来应该是随着角度一起搜索）。
-
 
 
 

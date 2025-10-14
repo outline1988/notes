@@ -168,7 +168,11 @@ OMP只要求字典$\mathbf{A}$具有一定的正交程度。
 
 
 
-
+$$
+\mathbf{z} = \begin{bmatrix}
+1 & 1 & 0 & \cdots  & 0
+\end{bmatrix} \in \{0, 1\}^{121}
+$$
 
 
 

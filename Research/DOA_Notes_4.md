@@ -9,27 +9,27 @@ $$
 对该式的两边同时傅里叶变换，转换为频域
 $$
 \begin{aligned}
-Y_m(f) &= \sum\limits_{k = 1}^{K}  S_k(f) \exp(-\mathrm{j} 2 \pi f \tau_{m, k}) + N_m(f) \\
+y_m(f) &= \sum\limits_{k = 1}^{K}  s_k(f) \exp(-\mathrm{j} 2 \pi f \tau_{m, k}) + n_m(f) \\
 &= \begin{bmatrix}
 \exp(-\mathrm{j} 2 \pi f \tau_{m, 1}) & \cdots & \exp(-\mathrm{j} 2 \pi f \tau_{m, K})
 \end{bmatrix}
 \begin{bmatrix}
-S_1(f) \\ \vdots \\ S_K(f)
-\end{bmatrix} + N_m(f)
+s_1(f) \\ \vdots \\ s_K(f)
+\end{bmatrix} + n_m(f)
 \end{aligned}
 $$
 所以，将所有阵元的接收信号排列为向量
 $$
 \begin{aligned}
-\mathbf{Y}(f) &= \begin{bmatrix}
+\mathbf{y}(f) &= \begin{bmatrix}
 \exp(-\mathrm{j} 2 \pi f \tau_{1, 1}) & \cdots & \exp(-\mathrm{j} 2 \pi f \tau_{1, K}) \\
 \vdots & \ddots & \vdots \\
 \exp(-\mathrm{j} 2 \pi f \tau_{M, 1}) & \cdots & \exp(-\mathrm{j} 2 \pi f \tau_{M, K})
 \end{bmatrix} \begin{bmatrix}
-S_1(f) \\ \vdots \\ S_K(f)
-\end{bmatrix} + \mathbf{N}(f) \\
-&= \sum\limits_{k = 1}^K \mathbf{a}(f, \theta_k) S_k(f) + \mathbf{N}(f) \\
-&= \mathbf{A}(f, \boldsymbol{\theta}) \mathbf{S}(f) + \mathbf{N}(f)
+s_1(f) \\ \vdots \\ s_K(f)
+\end{bmatrix} + \mathbf{n}(f) \\
+&= \sum\limits_{k = 1}^K \mathbf{a}(f, \theta_k) s_k(f) + \mathbf{n}(f) \\
+&= \mathbf{A}(f, \boldsymbol{\theta}) \mathbf{s}(f) + \mathbf{n}(f)
 \end{aligned}
 $$
 其中，对于均匀线阵，$\tau_{m, k} = (m - 1)d \sin( \theta_k)  / c$。
@@ -44,11 +44,36 @@ $$
 $$
 从时域的角度来说，孔径渡越时间最大可能为$D / c$，孔径渡越时间不会使得带宽$B$的信号有很大的影响，所以就有$B D / c \ll 1$。这就是窄带信号的条件，最终得到窄带的频域和时域表示为
 $$
-\mathbf{Y}(f) = \mathbf{A}(\boldsymbol{\theta}) \mathbf{S}(f) + \mathbf{N}(f) \\
+\mathbf{y}(f) = \mathbf{A}(\boldsymbol{\theta}) \mathbf{s}(f) + \mathbf{n}(f) \\
 \mathbf{y}(t) = \mathbf{A}(\boldsymbol{\theta}) \mathbf{s}(t) + \mathbf{n}(t)
 $$
 也就是说，窄带DOA估计实际上只是宽带DOA的一种特殊的情况。
 
+可以从另一个角度来看窄带DOA的条件。因为第一个阵元到最后一个阵元进行了时间的延迟$\frac{D}{c}$（孔径渡越时间），在此基础上，还有时域采样的概念，时域采样间隔$\frac{1}{B}$，所以$\frac{D / c}{1 / B}$就代表孔径渡越时间能够跨越多少个时域的采样间隔，窄带条件就意味着孔径渡越时间只能跨过很小一部分的时域采样间隔，所以才意味着复包络几乎不变。
+
+#### 宽带DOA估计模型生成
+
+假设载频为$f_{0}$，带宽为$B$，由此阵列接收信号$\mathbf{y}(f)$只在范围$\left[ f_{0}-B / 2, f_{0} + B  / 2 \right]$内有值。对于带线信号来说，带通采样和下变频操作仅仅只是将频域进行了一个频移，所以得到的离散序列的频谱为（频率坐标进行了转换）
+$$
+\begin{aligned}
+\mathbf{y}'(f) &= \mathbf{y}(f + f_{0}) = \mathbf{A}(f + f_{0}, \boldsymbol{\theta})\mathbf{s}(f + f_{0}) \\
+&= \mathbf{A}(f + f_{0}, \boldsymbol{\theta}) \mathbf{s}'(f), \;\; f \in \left[ -\frac{B}{2}, \frac{B}{2} \right]
+\end{aligned}
+$$
+由此，经过等频率间隔采样后，得到的离散频谱为
+$$
+\begin{aligned}
+\mathbf{y}'[k] &=\mathbf{y}'\left( k \frac{B}{N} \right) = \mathbf{A}\left( k \frac{B}{N} + f_{0}, \boldsymbol{\theta} \right) \mathbf{s}'\left(k \frac{B}{N}\right) \\
+&=  \mathbf{A}\left( k \frac{B}{N} + f_{0}, \boldsymbol{\theta} \right) \mathbf{s}'[k], \;\; k = -\frac{N}{2}, \dots, -\frac{N}{2}-1
+\end{aligned}
+$$
+根据上述，可总结宽带DOA估计模型的生成步骤
+- 对于每一个信源$k = 1, \dots, K$，生成时域信号$\{s'_{k}[n]\}_{n = 0}^{N - 1}$；
+- 对时域信号做DFT，生成频域信号$\{ s_{k}'[l] \}_{l= -N / 2}^{N / 2 - 1}$；
+- 对频域信号的每一个频点$l = -N / 2, \dots, N / 2 - 1$，生成接收数据中对应频点的数据，$\mathbf{y}'[l] = \sum \limits_{k = 1}^{K} \mathbf{a}\left( l \frac{B}{N} + f_{0}, \theta_{k} \right) s_{k}'[l]$；
+- 最后将$\{ \mathbf{y}'[l] \}_{-N / 2}^{N / 2 - 1}$进行IDFT返回时域即可。（注意fftshift和ifftshift的正确使用）。
+
+从物理意义上，这个流程将生成的一段离散序列，并对其进行插值（频域中的低频补零），由此能够形成阵元之间由于空间位置而造成的非整数时延。模型的正确与否，取决于低频补零形成的信号与原先的连续信号之间的相似度。
 #### Incoherent Signal Subspace Method
 
 对于宽带DOA估计，最自然的想法就是将一个宽带的信号经过窄带滤波器组，形成若干个窄带信号
@@ -185,3 +210,28 @@ $$
 宽带模型可以根据频域滤波转换为多个不同中心频率的窄带模型，可以按照波束空间转换的思路将不同窄带数据的协方差矩阵相残融合在一起，要求解释对于每一个频率的窄带模型，其各自所形成的$P$的波束响应器，在对应频率上，要求器波束响应要尽量一致。如何做到一致，以及如果不可能做到一致时，又会有怎样的取舍和近似，这一点有待研究，现在掌握的大概就行了。
 
 在实践中，不同窄带模型的波束空间一致性不好，就好导致最后合成的效果不好。
+
+
+$$
+\mathbf{S}(\boldsymbol{\beta})=\begin{bmatrix}
+\mathbf{s}_{1}^T(\boldsymbol{\beta}) \\
+\mathbf{s}_{2}^T(\boldsymbol{\beta})
+\end{bmatrix}
+$$
+
+
+$$
+\begin{aligned}
+y_{m}(t) * y_{1}^*(-t) &= \left[ \sum\limits_{k=1}^Ks_{k}(t-\tau_{m, k}) \right] * y_{1}^*(-t) \\
+&= \sum\limits_{k=1}^K [s_{k}(t-\tau_{m, k}) * y_{1}^*(-t)] \\
+&= \sum\limits_{k=1}^Kf_{k}(t-\tau_{m,k})
+\end{aligned}
+$$
+其中，$f_{k}(t)$为$s_{k}(t)$与$y_{1}(t)$的互相关
+$$
+f_{k}(t) = s_{k}(t) * y_{1}^*(-t)
+$$
+当$s_{k}(t)$之间相互正交时，$f_{k}(t)$就是$s_{k}(t)$的自相关
+$$
+f_{k}(t) = s_{k}(t) * s_{k}^*(-t)
+$$
